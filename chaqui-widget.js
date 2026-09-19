@@ -10,9 +10,10 @@
   var STORE_ADDRESS = "Cra. 43 A # 46 sur 20 (E/S Shell), Envigado, Antioquia";
   var MAP_QUERY = "Cra. 43A #46 Sur 20, Envigado, Antioquia, Colombia";
   var STORE_HOURS = "Lunes a viernes 9:00 a.m.–6:00 p.m. · Sábados 9:00 a.m.–4:00 p.m.";
-  var HISTORY_KEY = "chaqui_history_v2";
-  var GREETING = "¡Quiubo parce! Soy Chaqui, el asistente de Ahumadores Chaquiro. ¿Te ayudo a escoger tu ahumador o asador?";
-  var SUGGESTIONS = ["¿Qué ahumador me recomiendas?", "Ver combos para empezar", "Filtrar productos", "¿Dónde están ubicados?", "Hablar con una persona"];
+  var STORE_KEY = "chaqui_threads_v1"; // conversaciones guardadas en el navegador de cada visitante
+  var MAX_THREADS = 20, MAX_SAVED_MSGS = 40;
+  var GREETING = "¡Hola! Soy Chaqui, el asesor virtual de Ahumadores Chaquiro. Con gusto te ayudo a escoger tu ahumador o asador. ¿En qué te puedo colaborar?";
+  var SUGGESTIONS = ["¿Qué ahumador me recomiendan?", "Ver combos para empezar", "Filtrar productos", "¿Dónde están ubicados?", "Hablar con una persona"];
 
   var host = document.createElement("div");
   host.id = "chaqui-root";
@@ -35,7 +36,7 @@
     ".hb{display:flex;gap:2px}.ib{background:none;border:0;color:#f7f9ed;cursor:pointer;line-height:1;padding:7px 8px;border-radius:8px;font-size:18px;display:flex;align-items:center}.ib:hover,.ib.on{background:rgba(247,249,237,.18)}.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}" +
     /* cuerpo: panel lateral + chat */
     ".body{flex:1;display:flex;min-height:0}" +
-    ".chat{flex:1;min-width:0;display:flex;flex-direction:column}" +
+    ".chat{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}" +
     ".side{display:none;flex-direction:column;width:390px;flex:none;background:#fff;border-right:1px solid rgba(49,62,50,.14);min-height:0}" +
     ".panel.side-open .side{display:flex}" +
     ".panel.max.side-open .side{width:430px}" +
@@ -93,6 +94,21 @@
     ".dd{font-size:12.5px;line-height:1.5;color:#3f4a3f;padding-top:6px;white-space:pre-wrap}" +
     ".dd ul{margin:6px 0 0;padding-left:18px}" +
     ".vb{display:inline-block;margin-top:8px;background:#000;color:#f7f9ed;text-decoration:none;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px}" +
+    /* barra de conversaciones: historial + nuevo chat */
+    ".ctop{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(49,62,50,.12);background:#f7f9ed;flex:none}" +
+    ".ctop button{font-size:13px;font-weight:600;cursor:pointer;border-radius:10px;padding:7px 12px;border:1px solid rgba(49,62,50,.22);background:#fff;color:#313e32}" +
+    ".ctop button:hover:not(:disabled){background:#f1f3e2}.ctop button:disabled{opacity:.45;cursor:default}" +
+    ".ctop .new-btn{background:#000;color:#f7f9ed;border-color:#000}.ctop .new-btn:hover:not(:disabled){background:#1c1c1c}" +
+    ".hwrap{position:relative;min-width:0}" +
+    ".hmenu{display:none;position:absolute;left:0;top:calc(100% + 6px);width:min(340px,calc(100vw - 48px));max-height:340px;overflow-y:auto;background:#fff;border:1px solid rgba(49,62,50,.18);border-radius:12px;box-shadow:0 12px 32px rgba(13,17,23,.18);z-index:6}" +
+    ".hmenu.open{display:block}" +
+    ".hm-row{display:flex;align-items:stretch;border-bottom:1px solid rgba(49,62,50,.08)}.hm-row.on{background:#f1f3e2}" +
+    ".hm-open{flex:1;min-width:0;text-align:left;background:none!important;border:0!important;border-radius:0!important;padding:10px 12px!important;display:flex;flex-direction:column;gap:2px}" +
+    ".hm-t{font-size:13.5px;font-weight:600;color:#313e32;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hm-d{font-size:11.5px;font-weight:400;color:#6b756a}" +
+    ".hm-x{background:none!important;border:0!important;color:#6b756a;padding:0 12px!important;font-size:14px!important}.hm-x:hover{color:#b02a2a}" +
+    ".hm-empty{padding:16px 14px;font-size:13px;color:#6b756a}" +
+    ".hm-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;font-size:11.5px;color:#6b756a}" +
+    ".hm-foot button{border:0!important;background:none!important;color:#b02a2a!important;padding:2px 0!important;font-size:11.5px!important;text-decoration:underline}" +
     /* pantallas pequeñas: el panel lateral cubre el chat */
     "@media(max-width:760px){.max-btn{display:none}.panel,.panel.side-open{right:8px;bottom:84px;width:calc(100vw - 16px);height:calc(100vh - 100px)}.panel.side-open .side{width:100%;border-right:0}.panel.side-open .chat{display:none}}" +
     "</style>" +
@@ -113,8 +129,10 @@
     '<div class="pane-p"></div>' +
     '<div class="pane-m"></div>' +
     "</aside>" +
-    '<div class="chat"><div class="msgs" aria-live="polite"></div><div class="chips"></div>' +
-    '<form class="form"><input class="in" maxlength="500" placeholder="Escribe tu pregunta…" autocomplete="off"><button class="send" type="submit">Enviar</button></form>' +
+    '<div class="chat">' +
+    '<div class="ctop"><div class="hwrap"><button class="hist-btn" type="button" aria-haspopup="true">Conversaciones ▾</button><div class="hmenu"></div></div><button class="new-btn" type="button">＋ Nuevo chat</button></div>' +
+    '<div class="msgs" aria-live="polite"></div><div class="chips"></div>' +
+    '<form class="form"><input class="in" maxlength="500" placeholder="Escribí tu pregunta…" autocomplete="off"><button class="send" type="submit">Enviar</button></form>' +
     '<div class="foot">Asistente con IA · puede equivocarse · <a href="' + WA + '" target="_blank" rel="noopener">WhatsApp</a></div></div>' +
     "</div></section>";
 
@@ -122,12 +140,52 @@
   var btn = $(".btn"), panel = $(".panel"), side = $(".side"), msgs = $(".msgs"), chips = $(".chips"), form = $(".form"), input = $(".in"), send = $(".send");
   var cats = $(".cats"), pmin = $(".pmin"), pmax = $(".pmax"), avail = $(".avail"), paneP = $(".pane-p"), cnt = $(".cnt");
   var tabF = $(".tab-f"), tabP = $(".tab-p"), tabM = $(".tab-m"), paneM = $(".pane-m"), filtBtn = $(".filt-btn");
-  var history = [];
+  var histBtn = $(".hist-btn"), newBtn = $(".new-btn"), hmenu = $(".hmenu");
   var busy = false;
   var optionsCache = null;
+  var memStore = []; // respaldo si el navegador bloquea localStorage
 
-  try { history = JSON.parse(sessionStorage.getItem(HISTORY_KEY) || "[]"); } catch (e) {}
-  function save() { try { sessionStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-20))); } catch (e) {} }
+  /* ---------- Conversaciones guardadas ---------- */
+  // Cada carga de la página empieza una conversación NUEVA; las anteriores quedan en el historial.
+  function newThread() {
+    return { id: "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: "", createdAt: Date.now(), updatedAt: Date.now(), messages: [] };
+  }
+  var thread = newThread();
+  var history = thread.messages; // mensajes de la conversación actual
+
+  function readAll() {
+    try { var raw = localStorage.getItem(STORE_KEY); var a = raw ? JSON.parse(raw) : []; return Array.isArray(a) ? a : []; }
+    catch (e) { return memStore.slice(); }
+  }
+  function writeAll(list) {
+    list.sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    list = list.slice(0, MAX_THREADS);
+    for (;;) { // si no cabe (cuota llena), descarta las conversaciones más antiguas
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(list)); return; }
+      catch (e) { if (list.length <= 1) { memStore = list; return; } list.pop(); }
+    }
+  }
+  function slimProducts(list) {
+    return (list || []).map(function (p) {
+      return { titulo: p.titulo, url: p.url, precio: p.precio, disponible: p.disponible, imagen: p.imagen, detalle: (p.detalle || "").slice(0, 350), variantes: p.variantes };
+    });
+  }
+  // Guarda la conversación actual (solo si el usuario ya escribió algo)
+  function save() {
+    if (!history.some(function (m) { return m.role === "user"; })) return;
+    thread.updatedAt = Date.now();
+    if (!thread.title) {
+      var first = history.filter(function (m) { return m.role === "user"; })[0].content;
+      thread.title = first.length > 44 ? first.slice(0, 44) + "…" : first;
+    }
+    var copy = {
+      id: thread.id, title: thread.title, createdAt: thread.createdAt, updatedAt: thread.updatedAt,
+      messages: history.slice(-MAX_SAVED_MSGS).map(function (m) { return { role: m.role, content: m.content, products: m.products && m.products.length ? slimProducts(m.products) : undefined }; })
+    };
+    var all = readAll().filter(function (t) { return t.id !== thread.id; });
+    all.push(copy);
+    writeAll(all);
+  }
 
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function render(text) {
@@ -272,7 +330,7 @@
     if (optionsCache) return;
     post({ action: "filter_options" })
       .then(function (o) { optionsCache = o; buildFilters(o); })
-      .catch(function () { cats.textContent = "No pude cargar las categorías. Intenta de nuevo."; });
+      .catch(function () { cats.textContent = "No pude cargar las categorías. Intentá de nuevo."; });
   }
   function clearFilters() {
     var first = cats.querySelector("input[type=radio]"); if (first) first.checked = true;
@@ -289,7 +347,7 @@
     if (f.solo_disponibles) parts.push("solo disponibles");
     var userText = "Filtros: " + (parts.length ? parts.join(" · ") : "todos los productos");
     chips.innerHTML = "";
-    busy = true; send.disabled = true;
+    setBusy(true);
     add("user", userText);
     history.push({ role: "user", content: userText }); save();
     var bubble = add("bot", ""); bubble.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
@@ -297,29 +355,86 @@
       .then(function (d) {
         var text = d.total
           ? "Encontré " + d.total + " producto" + (d.total > 1 ? "s" : "") + " con esos filtros" + (d.productos.length < d.total ? " (te muestro los " + d.productos.length + " más económicos)" : "") + ". Los ves en el panel de la izquierda."
-          : "No encontré productos con esos filtros, parce. Probá ampliando el precio o cambiando la categoría.";
+          : "No encontré productos con esos filtros. Podés ampliar el rango de precio o cambiar la categoría.";
         bubble.innerHTML = render(text);
         history.push({ role: "assistant", content: text, products: d.productos || [] }); save();
         setProducts(d.productos, true);
         addProductsChip(d.productos);
       })
-      .catch(function () { bubble.innerHTML = 'Uy parce, no pude traer los productos. Escríbenos por <a href="' + WA + '" target="_blank" rel="noopener">WhatsApp</a>.'; history.pop(); save(); })
-      .then(function () { busy = false; send.disabled = false; msgs.scrollTop = msgs.scrollHeight; });
+      .catch(function () { bubble.innerHTML = 'No pude traer los productos en este momento. Escribinos por WhatsApp: <a href="' + WA + '" target="_blank" rel="noopener">abrir chat</a>.'; history.pop(); save(); })
+      .then(function () { setBusy(false); msgs.scrollTop = msgs.scrollHeight; });
   }
 
   /* ---------- Chat ---------- */
+  function setBusy(b) {
+    busy = b; send.disabled = b; newBtn.disabled = b; histBtn.disabled = b; // no se cambia de conversación mientras se responde
+  }
+  // Pinta la conversación actual desde cero (saludo + mensajes guardados + último listado de productos)
+  function renderThread() {
+    msgs.innerHTML = ""; chips.innerHTML = "";
+    add("bot", GREETING);
+    var last = null;
+    history.forEach(function (m) {
+      add(m.role === "user" ? "user" : "bot", m.content);
+      if (m.products && m.products.length) { addProductsChip(m.products); last = m.products; }
+    });
+    setProducts(last || [], false);
+    if (!history.length) showChips();
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function newChat() {
+    if (busy) return;
+    thread = newThread(); history = thread.messages;
+    closeMenu(); closeSide(); renderThread();
+    input.focus();
+  }
+  function openThread(t) {
+    if (busy) return;
+    thread = { id: t.id, title: t.title, createdAt: t.createdAt, updatedAt: t.updatedAt, messages: (t.messages || []).slice() };
+    history = thread.messages;
+    closeMenu(); closeSide(); renderThread();
+    input.focus();
+  }
+  function deleteThread(id) {
+    writeAll(readAll().filter(function (t) { return t.id !== id; }));
+    if (id === thread.id) newChat(); else buildMenu();
+  }
+  function fmtDate(ts) {
+    try { return new Date(ts).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; }
+  }
+  function buildMenu() {
+    var list = readAll().sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    hmenu.innerHTML = "";
+    if (!list.length) hmenu.appendChild(el("div", "hm-empty", "Aún no hay conversaciones anteriores. Se van guardando aquí a medida que conversás."));
+    list.forEach(function (t) {
+      var row = el("div", "hm-row" + (t.id === thread.id ? " on" : ""));
+      var open = el("button", "hm-open"); open.type = "button";
+      open.appendChild(el("span", "hm-t", t.title || "Conversación"));
+      open.appendChild(el("span", "hm-d", fmtDate(t.updatedAt)));
+      open.onclick = function () { openThread(t); };
+      var del = el("button", "hm-x", "✕"); del.type = "button"; del.title = "Borrar esta conversación"; del.setAttribute("aria-label", "Borrar esta conversación");
+      del.onclick = function (e) { e.stopPropagation(); deleteThread(t.id); };
+      row.appendChild(open); row.appendChild(del);
+      hmenu.appendChild(row);
+    });
+    var foot = el("div", "hm-foot");
+    foot.appendChild(el("span", "", "Se guardan solo en este navegador"));
+    if (list.length) {
+      var all = el("button", "", "Borrar todo"); all.type = "button";
+      all.onclick = function () { if (confirm("¿Borrar todas las conversaciones guardadas?")) { writeAll([]); newChat(); } };
+      foot.appendChild(all);
+    }
+    hmenu.appendChild(foot);
+  }
+  function closeMenu() { hmenu.classList.remove("open"); }
+  function toggleMenu() {
+    if (hmenu.classList.contains("open")) return closeMenu();
+    buildMenu(); hmenu.classList.add("open");
+  }
+
   function open() {
     panel.classList.add("open");
-    if (!msgs.children.length) {
-      add("bot", GREETING);
-      var last = null;
-      history.forEach(function (m) {
-        add(m.role === "user" ? "user" : "bot", m.content);
-        if (m.products && m.products.length) { addProductsChip(m.products); last = m.products; }
-      });
-      if (last) setProducts(last, false);
-      if (!history.length) showChips();
-    }
+    if (!msgs.children.length) renderThread();
     input.focus();
   }
   function showChips() {
@@ -333,7 +448,7 @@
   function ask(text) {
     text = (text || "").trim();
     if (!text || busy) return;
-    busy = true; send.disabled = true; chips.innerHTML = "";
+    setBusy(true); chips.innerHTML = "";
     add("user", text);
     history.push({ role: "user", content: text }); save();
     var typing = add("bot", ""); typing.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
@@ -353,8 +468,8 @@
           b.type = "button"; b.onclick = function () { openSide(tab); }; msgs.appendChild(b);
         });
       })
-      .catch(function () { typing.innerHTML = 'Uy parce, tuve un problema para responderte. Escríbenos por <a href="' + WA + '" target="_blank" rel="noopener">WhatsApp</a> y te ayudamos.'; history.pop(); save(); })
-      .then(function () { busy = false; send.disabled = false; msgs.scrollTop = msgs.scrollHeight; input.focus(); });
+      .catch(function () { typing.innerHTML = 'Tuve un inconveniente para responderte. Escribinos por WhatsApp y con gusto te ayudamos: <a href="' + WA + '" target="_blank" rel="noopener">abrir chat</a>.'; history.pop(); save(); })
+      .then(function () { setBusy(false); msgs.scrollTop = msgs.scrollHeight; input.focus(); });
   }
 
   btn.onclick = function () { panel.classList.contains("open") ? panel.classList.remove("open") : open(); };
@@ -375,5 +490,8 @@
   $(".clr").onclick = clearFilters;
   $(".go").onclick = runFilterSearch;
   form.onsubmit = function (e) { e.preventDefault(); var v = input.value; input.value = ""; ask(v); };
+  newBtn.onclick = newChat;
+  histBtn.onclick = function (e) { e.stopPropagation(); toggleMenu(); };
+  root.addEventListener("click", function (e) { if (!e.target.closest || !e.target.closest(".hwrap")) closeMenu(); });
   setProducts([], false);
 })();
