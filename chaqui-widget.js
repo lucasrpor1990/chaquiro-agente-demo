@@ -41,11 +41,19 @@
     ".panel.side-open .side{display:flex}" +
     ".panel.max.side-open .side{width:430px}" +
     ".tabs{display:flex;align-items:center;border-bottom:1px solid rgba(49,62,50,.12);padding:0 8px 0 4px;flex:none}" +
-    ".tab{background:none;border:0;border-bottom:3px solid transparent;padding:14px 12px 11px;font-size:14px;font-weight:600;color:#6b756a;cursor:pointer;display:flex;align-items:center;gap:6px}" +
+    ".tab{background:none;border:0;border-bottom:3px solid transparent;padding:14px 9px 11px;font-size:14px;font-weight:600;color:#6b756a;cursor:pointer;display:flex;align-items:center;gap:6px}" +
     ".tab.on{color:#000;border-bottom-color:#ffd875}" +
     ".cnt{background:#000;color:#f7f9ed;border-radius:999px;font-size:11px;padding:1px 7px;font-weight:700}.cnt:empty{display:none}" +
     ".sclose{margin-left:auto;background:none;border:0;font-size:18px;cursor:pointer;color:#313e32;padding:8px}" +
-    ".pane-f,.pane-p,.pane-m{display:none;flex:1;min-height:0}" +
+    ".pane-f,.pane-p,.pane-m,.pane-c{display:none;flex:1;min-height:0}" +
+    ".side[data-tab=c] .pane-c{display:block;overflow-y:auto;padding:16px;background:#f7f9ed}" +
+    ".ct-h{font-weight:700;font-size:16px;margin:0 0 4px}.ct-s{font-size:13px;color:#6b756a;margin:0 0 14px;line-height:1.45}" +
+    ".cbtn{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(49,62,50,.14);border-radius:12px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:#313e32;transition:border-color .15s}" +
+    ".cbtn:hover{border-color:rgba(255,216,117,.95)}.cbtn.main{background:#000;color:#f7f9ed;border-color:#000}.cbtn.main .ic{background:#ffd875;color:#000}.cbtn.main small{color:#d4d9c7}" +
+    ".cbtn .ic{width:40px;height:40px;border-radius:50%;background:#000;color:#f7f9ed;display:flex;align-items:center;justify-content:center;flex:none}.cbtn .ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}" +
+    ".cbtn b{display:block;font-size:14.5px}.cbtn small{display:block;font-size:12.5px;color:#6b756a;margin-top:1px;word-break:break-word}" +
+    ".chrs{background:#fff;border:1px solid rgba(49,62,50,.14);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.55;margin-top:4px}.chrs b{display:block;margin-bottom:2px}" +
+    ".clink{display:block;margin-top:10px;background:none;border:0;padding:0;color:#003331;font-weight:600;font-size:13px;text-decoration:underline;cursor:pointer;text-align:left}" +
     ".side[data-tab=m] .pane-m{display:flex;flex-direction:column;background:#f7f9ed}" +
     ".map{flex:1;min-height:220px;border:0;width:100%;background:#eef0e0}" +
     ".mi{padding:14px 16px;border-top:1px solid rgba(49,62,50,.12);background:#fff;display:flex;flex-direction:column;gap:8px}" +
@@ -121,13 +129,14 @@
     '<button class="ib x" aria-label="Cerrar" title="Cerrar">✕</button></div></div>' +
     '<div class="body">' +
     '<aside class="side" data-tab="f" aria-label="Filtros y productos">' +
-    '<div class="tabs"><button class="tab tab-f on" type="button">Filtros</button><button class="tab tab-p" type="button">Productos <span class="cnt"></span></button><button class="tab tab-m" type="button">Ubicación</button><button class="sclose" aria-label="Cerrar panel">✕</button></div>' +
+    '<div class="tabs"><button class="tab tab-f on" type="button">Filtros</button><button class="tab tab-p" type="button">Productos <span class="cnt"></span></button><button class="tab tab-m" type="button">Ubicación</button><button class="tab tab-c" type="button">Contacto</button><button class="sclose" aria-label="Cerrar panel">✕</button></div>' +
     '<div class="pane-f"><div class="db"><div class="sec">Categoría</div><div class="cats">Cargando…</div>' +
     '<div class="sec" style="margin-top:14px">Precio (COP)</div><div class="pr"><input class="pmin" type="number" min="0" inputmode="numeric" placeholder="Mínimo"><input class="pmax" type="number" min="0" inputmode="numeric" placeholder="Máximo"></div>' +
     '<label class="opt"><input class="avail" type="checkbox"><span>Solo disponibles</span></label></div>' +
     '<div class="df"><button class="clr" type="button">Limpiar</button><button class="go" type="button">Buscar</button></div></div>' +
     '<div class="pane-p"></div>' +
     '<div class="pane-m"></div>' +
+    '<div class="pane-c"></div>' +
     "</aside>" +
     '<div class="chat">' +
     '<div class="ctop"><div class="hwrap"><button class="hist-btn" type="button" aria-haspopup="true">Conversaciones ▾</button><div class="hmenu"></div></div><button class="new-btn" type="button">＋ Nuevo chat</button></div>' +
@@ -140,6 +149,7 @@
   var btn = $(".btn"), panel = $(".panel"), side = $(".side"), msgs = $(".msgs"), chips = $(".chips"), form = $(".form"), input = $(".in"), send = $(".send");
   var cats = $(".cats"), pmin = $(".pmin"), pmax = $(".pmax"), avail = $(".avail"), paneP = $(".pane-p"), cnt = $(".cnt");
   var tabF = $(".tab-f"), tabP = $(".tab-p"), tabM = $(".tab-m"), paneM = $(".pane-m"), filtBtn = $(".filt-btn");
+  var tabC = $(".tab-c"), paneC = $(".pane-c");
   var histBtn = $(".hist-btn"), newBtn = $(".new-btn"), hmenu = $(".hmenu");
   var busy = false;
   var optionsCache = null;
@@ -222,6 +232,7 @@
     tabF.classList.toggle("on", name === "f");
     tabP.classList.toggle("on", name === "p");
     tabM.classList.toggle("on", name === "m");
+    tabC.classList.toggle("on", name === "c");
   }
   function openSide(name) {
     panel.classList.add("side-open");
@@ -229,6 +240,39 @@
     showTab(name);
     if (name === "f") loadFilters();
     if (name === "m") loadMap();
+    if (name === "c") loadContact();
+  }
+  // Panel de contacto: botones directos (WhatsApp, llamada, correo), horario y dirección. Se crea la primera vez que se abre.
+  var SUPPORT_PHONE = "+573105145907", SUPPORT_PHONE_TXT = "+57 310 514 5907", SUPPORT_EMAIL = "contacto@chaquiro.com", WA_TXT = "+57 318 472 0787";
+  var ICONS = {
+    wa: '<svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>',
+    tel: '<svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>',
+    mail: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>'
+  };
+  function contactBtn(cls, icon, title, sub, href) {
+    var a = el("a", "cbtn" + (cls ? " " + cls : "")); a.href = href;
+    if (/^https?:/.test(href)) { a.target = "_blank"; a.rel = "noopener"; }
+    var ic = el("span", "ic"); ic.innerHTML = ICONS[icon]; a.appendChild(ic);
+    var tx = el("div"); tx.appendChild(el("b", "", title)); tx.appendChild(el("small", "", sub)); a.appendChild(tx);
+    return a;
+  }
+  function loadContact() {
+    if (paneC.firstChild) return;
+    paneC.appendChild(el("div", "ct-h", "Hablemos"));
+    paneC.appendChild(el("div", "ct-s", "Elegí cómo querés que te atendamos. Con gusto te ayudamos."));
+    paneC.appendChild(contactBtn("main", "wa", "Escribir por WhatsApp", WA_TXT, WA + "?text=" + encodeURIComponent("¡Hola Ahumadores Chaquiro! Vengo del sitio web y necesito asesoría")));
+    paneC.appendChild(contactBtn("", "tel", "Llamar", SUPPORT_PHONE_TXT, "tel:" + SUPPORT_PHONE));
+    paneC.appendChild(contactBtn("", "mail", "Escribir un correo", SUPPORT_EMAIL, "mailto:" + SUPPORT_EMAIL));
+    var hrs = el("div", "chrs");
+    hrs.appendChild(el("b", "", "Horario de atención"));
+    hrs.appendChild(document.createTextNode(STORE_HOURS));
+    hrs.appendChild(document.createElement("br"));
+    hrs.appendChild(el("b", "", "Tienda"));
+    hrs.appendChild(document.createTextNode(STORE_ADDRESS));
+    var map = el("button", "clink", "Ver en el mapa ▸"); map.type = "button";
+    map.onclick = function () { showTab("m"); loadMap(); };
+    hrs.appendChild(map);
+    paneC.appendChild(hrs);
   }
   // Mapa de Google (embed sin clave). Se crea solo la primera vez que se abre la pestaña.
   function loadMap() {
@@ -441,7 +485,7 @@
     chips.innerHTML = "";
     SUGGESTIONS.forEach(function (s) {
       var c = el("button", "chip", s); c.type = "button";
-      c.onclick = function () { s === "Filtrar productos" ? openSide("f") : ask(s); };
+      c.onclick = function () { s === "Filtrar productos" ? openSide("f") : s === "Hablar con una persona" ? openSide("c") : ask(s); };
       chips.appendChild(c);
     });
   }
@@ -461,10 +505,10 @@
           addProductsChip(d.products);
         }
         (d.widgets || []).forEach(function (w) {
-          var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : null;
+          var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
           if (!tab) return;
           if (!isSmall()) { openSide(tab); return; }
-          var b = el("button", "vp", tab === "f" ? "Abrir filtros ▸" : "Ver mapa ▸");
+          var b = el("button", "vp", tab === "f" ? "Abrir filtros ▸" : tab === "c" ? "Ver opciones de contacto ▸" : "Ver mapa ▸");
           b.type = "button"; b.onclick = function () { openSide(tab); }; msgs.appendChild(b);
         });
       })
@@ -486,6 +530,7 @@
   tabF.onclick = function () { showTab("f"); loadFilters(); };
   tabP.onclick = function () { showTab("p"); };
   tabM.onclick = function () { showTab("m"); loadMap(); };
+  tabC.onclick = function () { showTab("c"); loadContact(); };
   $(".sclose").onclick = closeSide;
   $(".clr").onclick = clearFilters;
   $(".go").onclick = runFilterSearch;
