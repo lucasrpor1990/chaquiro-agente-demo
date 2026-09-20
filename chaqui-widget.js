@@ -99,6 +99,17 @@
     "details{margin-top:8px;border-top:1px solid rgba(49,62,50,.1);padding-top:6px}" +
     "summary{cursor:pointer;font-size:12.5px;font-weight:600;color:#313e32;list-style:none;display:flex;align-items:center;gap:5px}summary::-webkit-details-marker{display:none}" +
     "summary::before{content:'▸';font-size:11px;transition:transform .15s}details[open] summary::before{transform:rotate(90deg)}" +
+    ".buy{margin-top:10px;padding-top:10px;border-top:1px solid rgba(49,62,50,.1);display:flex;flex-direction:column;gap:8px}" +
+    ".brow{display:flex;gap:8px;align-items:stretch}" +
+    ".vsel{flex:1;min-width:0;border:1px solid rgba(49,62,50,.25);border-radius:8px;padding:8px;font-size:13px;color:#313e32;background:#fff}" +
+    ".qty{display:flex;align-items:center;border:1px solid rgba(49,62,50,.25);border-radius:8px;overflow:hidden;background:#fff;flex:none;margin-left:auto}" +
+    ".qty button{width:32px;height:36px;border:0;background:none;font-size:17px;cursor:pointer;color:#313e32}.qty button:hover:not(:disabled){background:#f1f3e2}.qty button:disabled{opacity:.35;cursor:default}" +
+    ".qty span{min-width:28px;text-align:center;font-size:14px;font-weight:700}" +
+    ".bb{flex:1;padding:10px 6px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #000;line-height:1.2}" +
+    ".bb.add{background:#fff;color:#000}.bb.add:hover:not(:disabled){background:#f1f3e2}.bb.now{background:#000;color:#f7f9ed}.bb.now:hover:not(:disabled){background:#1c1c1c}" +
+    ".bb:disabled{opacity:.4;cursor:default}" +
+    ".cstat{font-size:12.5px;line-height:1.45;color:#3f4a3f}.cstat:empty{display:none}.cstat.ok{color:#2b6a12;font-weight:600}.cstat.err{color:#b02a2a}" +
+    ".cstat a{color:#003331;font-weight:700;text-decoration:underline}" +
     ".dd{font-size:12.5px;line-height:1.5;color:#3f4a3f;padding-top:6px;white-space:pre-wrap}" +
     ".dd ul{margin:6px 0 0;padding-left:18px}" +
     ".vb{display:inline-block;margin-top:8px;background:#000;color:#f7f9ed;text-decoration:none;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px}" +
@@ -177,7 +188,7 @@
   }
   function slimProducts(list) {
     return (list || []).map(function (p) {
-      return { titulo: p.titulo, url: p.url, precio: p.precio, disponible: p.disponible, imagen: p.imagen, detalle: (p.detalle || "").slice(0, 350), variantes: p.variantes };
+      return { titulo: p.titulo, url: p.url, precio: p.precio, disponible: p.disponible, imagen: p.imagen, detalle: (p.detalle || "").slice(0, 350), variantes: p.variantes, vars: p.vars };
     });
   }
   // Guarda la conversación actual (solo si el usuario ya escribió algo)
@@ -294,6 +305,112 @@
   function closeSide() { panel.classList.remove("side-open"); filtBtn.classList.remove("on"); }
 
   /* ---------- Tarjetas de producto (imagen + datos + detalles desplegables) ---------- */
+  /* ---------- Compra desde la tarjeta: variante, cantidad, "Agregar al carrito" y "Comprar ahora" ---------- */
+  var STORE_ORIGIN = "https://chaquiro.com";
+  // Agregar al carrito solo puede funcionar cuando el widget corre dentro de chaquiro.com (misma sesión de carrito).
+  var ON_STORE = /(^|\.)chaquiro\.com$/i.test(location.hostname);
+  function track(name, data) {
+    try { if (window.Shopify && window.Shopify.analytics && window.Shopify.analytics.publish) window.Shopify.analytics.publish("chaqui:" + name, data || {}); } catch (e) {}
+  }
+  // Avisa al tema de que el carrito cambió (depende de cada tema: se prueba varias señales comunes)
+  function notifyTheme(cart) {
+    ["cart:refresh", "cart:updated", "cart:change"].forEach(function (n) { try { document.dispatchEvent(new CustomEvent(n, { detail: { cart: cart }, bubbles: true })); } catch (e) {} });
+    // El tema de Chaquiro no escucha esos eventos: se pide a Shopify el encabezado ya actualizado (Section Rendering API)
+    // y se reemplaza el contador del carrito. Los selectores son de este tema; si cambia, revisar aquí.
+    fetch("/?sections=header", { headers: { accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var html = j.header || j[Object.keys(j)[0]];
+        if (!html) return;
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        // El tema tiene más de un contador (p. ej. escritorio y móvil): se actualizan todos, con copias del HTML nuevo
+        [".js-header-cart-item-count-wrapper", ".header__cart-count", "[data-cart-count]"].forEach(function (sel) {
+          var live = document.querySelectorAll(sel), fresh = doc.querySelectorAll(sel);
+          if (!live.length || live.length !== fresh.length) return;
+          live.forEach(function (node, i) { node.replaceWith(fresh[i].cloneNode(true)); });
+        });
+      })
+      .catch(function () {});
+  }
+  function actionLink(text, href) { var a = el("a", "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a; }
+  function buyBox(p, ppEl, bdEl) {
+    var vars = p.vars, qty = 1, sel = null;
+    var cur = vars.filter(function (v) { return v.a; })[0] || vars[0];
+    var box = el("div", "buy");
+    var row1 = el("div", "brow");
+    if (vars.length > 1) {
+      sel = el("select", "vsel"); sel.setAttribute("aria-label", "Opción del producto");
+      vars.forEach(function (v, i) {
+        var o = el("option", "", (v.t || "Opción") + " · " + v.p + (v.a ? "" : " (agotado)"));
+        o.value = String(i); if (v === cur) o.selected = true; sel.appendChild(o);
+      });
+      row1.appendChild(sel);
+    }
+    var q = el("div", "qty");
+    var minus = el("button", "", "−"); minus.type = "button"; minus.setAttribute("aria-label", "Menos");
+    var qv = el("span", "", "1");
+    var plus = el("button", "", "+"); plus.type = "button"; plus.setAttribute("aria-label", "Más");
+    q.appendChild(minus); q.appendChild(qv); q.appendChild(plus);
+    row1.appendChild(q);
+    box.appendChild(row1);
+
+    var row2 = el("div", "brow");
+    var add = el("button", "bb add", "Agregar al carrito"); add.type = "button";
+    var now = el("button", "bb now", "Comprar ahora"); now.type = "button";
+    row2.appendChild(add); row2.appendChild(now);
+    box.appendChild(row2);
+    var stat = el("div", "cstat");
+    box.appendChild(stat);
+
+    function refresh() {
+      if (sel) cur = vars[Number(sel.value)];
+      qv.textContent = String(qty);
+      minus.disabled = qty <= 1; plus.disabled = qty >= 10;
+      if (vars.length > 1) ppEl.textContent = cur.p;
+      var ok = !!cur.a;
+      bdEl.className = "bd " + (ok ? "ok" : "no"); bdEl.textContent = ok ? "En stock" : "Agotado";
+      add.disabled = !ok; now.disabled = !ok;
+      stat.textContent = "";
+    }
+    if (sel) sel.onchange = refresh;
+    minus.onclick = function () { if (qty > 1) { qty--; refresh(); } };
+    plus.onclick = function () { if (qty < 10) { qty++; refresh(); } };
+
+    now.onclick = function () {
+      var url = STORE_ORIGIN + "/cart/" + cur.id + ":" + qty + "?utm_source=chaqui&utm_medium=chat&utm_campaign=widget";
+      track("buy_now", { product: p.titulo, variant_id: cur.id, quantity: qty });
+      window.open(url, "_blank", "noopener");
+    };
+    add.onclick = function () {
+      if (!ON_STORE) { // en la página de prueba no hay sesión de carrito de la tienda: llevar a la ficha
+        stat.textContent = "";
+        stat.appendChild(document.createTextNode("Esta es una página de prueba: agregar al carrito solo funciona dentro de chaquiro.com. "));
+        stat.appendChild(actionLink("Ver la ficha ▸", p.url));
+        return;
+      }
+      add.disabled = true; now.disabled = true;
+      stat.className = "cstat"; stat.textContent = "Agregando…";
+      fetch("/cart/add.js", { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify({ items: [{ id: cur.id, quantity: qty }] }) })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.description || j.message || String(r.status)); return j; }); })
+        .then(function () { return fetch("/cart.js", { headers: { accept: "application/json" } }).then(function (r) { return r.json(); }); })
+        .then(function (cart) {
+          stat.className = "cstat ok"; stat.textContent = "";
+          stat.appendChild(document.createTextNode("Agregado ✓ (" + cart.item_count + " en tu carrito) · "));
+          stat.appendChild(actionLink("Ver carrito", "/cart")); stat.appendChild(document.createTextNode(" · ")); stat.appendChild(actionLink("Pagar", "/checkout"));
+          notifyTheme(cart);
+          track("add_to_cart", { product: p.titulo, variant_id: cur.id, quantity: qty });
+        })
+        .catch(function (e) {
+          stat.className = "cstat err"; stat.textContent = "";
+          stat.appendChild(document.createTextNode("No pude agregarlo (" + (e.message || "error") + "). "));
+          stat.appendChild(actionLink("Probá desde la ficha ▸", p.url));
+        })
+        .then(function () { add.disabled = !cur.a; now.disabled = !cur.a; });
+    };
+    refresh();
+    return box;
+  }
+
   function productCard(p) {
     var card = el("div", "pc");
     var top = el("div", "pt");
@@ -304,11 +421,14 @@
     var info = el("div", "pi");
     var name = el("a", "pn", p.titulo || ""); name.href = p.url; name.target = "_blank"; name.rel = "noopener";
     info.appendChild(name);
-    info.appendChild(el("div", "pp", p.precio || ""));
+    var ppEl = el("div", "pp", p.precio || "");
+    info.appendChild(ppEl);
     var stock = typeof p.stock === "number" && p.stock > 0 ? p.stock + " disponibles" : "En stock";
-    info.appendChild(p.disponible === false ? el("span", "bd no", "Agotado") : el("span", "bd ok", stock));
+    var bdEl = p.disponible === false ? el("span", "bd no", "Agotado") : el("span", "bd ok", stock);
+    info.appendChild(bdEl);
     top.appendChild(info);
     card.appendChild(top);
+    if (p.vars && p.vars.length) card.appendChild(buyBox(p, ppEl, bdEl));
     if (p.detalle || (p.variantes && p.variantes.length)) {
       var det = el("details");
       det.appendChild(el("summary", "", "Detalles"));
