@@ -128,8 +128,45 @@
     ".hm-empty{padding:16px 14px;font-size:13px;color:#6b756a}" +
     ".hm-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;font-size:11.5px;color:#6b756a}" +
     ".hm-foot button{border:0!important;background:none!important;color:#b02a2a!important;padding:2px 0!important;font-size:11.5px!important;text-decoration:underline}" +
-    /* pantallas pequeñas: el panel lateral cubre el chat */
-    "@media(max-width:760px){.max-btn{display:none}.panel,.panel.side-open{right:8px;bottom:84px;width:calc(100vw - 16px);height:calc(100vh - 100px)}.panel.side-open .side{width:100%;border-right:0}.panel.side-open .chat{display:none}}" +
+    /* productos dentro del chat (celular): carrusel deslizable */
+    ".pcar{flex:none;display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;margin:0 -12px;padding:2px 12px 10px;scrollbar-width:none;align-self:stretch}.pcar::-webkit-scrollbar{display:none}" +
+    ".pcar .pc{flex:0 0 min(88%,340px);scroll-snap-align:center}" +
+    ".phint{flex:none;align-self:center;font-size:12px;color:#6b756a;margin-top:-4px}" +
+    ".scrim{display:none}" +
+    /* CELULAR (pantalla estrecha o teléfono en horizontal): chat a pantalla completa + hoja inferior */
+    "@media(max-width:760px),(max-height:520px){" +
+    ".max-btn{display:none}" +
+    ":host(.chq-open) .btn{display:none}" +
+    ".btn{right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:58px;height:58px}" +
+    ".panel,.panel.open,.panel.side-open,.panel.max{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;max-width:none;height:100vh;height:100dvh;max-height:none;border-radius:0;box-shadow:none;transition:none}" +
+    ".head{padding:calc(10px + env(safe-area-inset-top)) 6px 10px 14px}" +
+    ".ib{padding:12px;font-size:20px}" +
+    ".ctop{padding:8px 12px}.ctop button{font-size:14px;padding:9px 14px;min-height:42px}" +
+    ".msgs{padding:12px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}" +
+    ".m,.panel.max .m{font-size:15.5px;max-width:90%}" +
+    ".chips{flex-wrap:nowrap;overflow-x:auto;padding:0 12px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}" +
+    ".chip{flex:none;white-space:nowrap;padding:10px 15px;font-size:14px}" +
+    ".form{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}" +
+    ".in{font-size:16px;padding:12px 14px}" +
+    ".send{padding:0 18px;font-size:15px;min-height:46px}" +
+    ".foot{display:none}" +
+    ".body{position:relative}" +
+    ".panel.side-open .scrim{display:block;position:absolute;inset:0;background:rgba(0,0,0,.42);z-index:19}" +
+    ".panel .side,.panel.side-open .side,.panel.max.side-open .side{position:absolute;left:0;right:0;bottom:0;top:auto;width:100%;height:80vh;height:80dvh;max-height:calc(100% - 56px);border-radius:18px 18px 0 0;border-right:0;box-shadow:0 -14px 40px rgba(0,0,0,.28);z-index:20;padding-bottom:env(safe-area-inset-bottom)}" +
+    ".panel.side-open .chat{display:flex}" +
+    ".tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}" +
+    ".tab{flex:none;padding:14px 10px 11px;font-size:14.5px}" +
+    ".sclose{flex:none;font-size:22px;padding:10px 12px}" +
+    ".pr input,.vsel{font-size:16px}" +
+    ".opt{padding:11px 2px;font-size:15px}.opt input{width:20px;height:20px}" +
+    ".go,.clr{padding:14px;font-size:15px}" +
+    ".bb{padding:13px 6px;font-size:14px}.qty button{width:42px;height:44px}.vsel{padding:11px 8px}" +
+    "summary{padding:8px 0;font-size:14px}" +
+    ".cbtn{padding:14px}.cbtn b{font-size:15.5px}" +
+    ".hmenu{width:calc(100vw - 24px)}" +
+    "}" +
+    /* teléfono en horizontal: poca altura, se compactan cabecera y barras para dejar espacio a los mensajes */
+    "@media(max-height:520px){.sub{display:none}.head{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}.ib{padding:8px 12px}.ctop{padding:4px 12px}.ctop button{min-height:36px;padding:6px 12px}.form{padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}.chips{padding-bottom:4px}}" +
     "</style>" +
     '<button class="btn" aria-label="Abrir chat con Chaqui"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></button>' +
     '<section class="panel" role="dialog" aria-label="Chat con Chaqui">' +
@@ -138,7 +175,7 @@
     '<button class="ib filt-btn" aria-label="Filtros y productos" title="Filtros y productos"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>' +
     '<button class="ib max-btn" aria-label="Maximizar" title="Maximizar">⤢</button>' +
     '<button class="ib x" aria-label="Cerrar" title="Cerrar">✕</button></div></div>' +
-    '<div class="body">' +
+    '<div class="body"><div class="scrim"></div>' +
     '<aside class="side" data-tab="f" aria-label="Filtros y productos">' +
     '<div class="tabs"><button class="tab tab-f on" type="button">Filtros</button><button class="tab tab-p" type="button">Productos <span class="cnt"></span></button><button class="tab tab-m" type="button">Ubicación</button><button class="tab tab-c" type="button">Contacto</button><button class="sclose" aria-label="Cerrar panel">✕</button></div>' +
     '<div class="pane-f"><div class="db"><div class="sec">Categoría</div><div class="cats">Cargando…</div>' +
@@ -235,7 +272,46 @@
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
   }
   function money(n) { return "$" + Number(n).toLocaleString("es-CO"); }
-  function isSmall() { return window.matchMedia("(max-width:760px)").matches; }
+  // "Celular": pantalla estrecha o teléfono en horizontal (poca altura). Debe coincidir con el @media del CSS.
+  function isSmall() { return window.matchMedia("(max-width:760px),(max-height:520px)").matches; }
+  // Llevar al inicio de un elemento dentro del chat (para ver la respuesta y sus productos juntos)
+  // Si lo que sigue (respuesta + productos) cabe en pantalla, se alinea al inicio de la respuesta; si no, se baja hasta el final
+  // para que los productos (y sus botones de compra) queden completos a la vista.
+  function scrollToEl(node) {
+    try {
+      var top = node.getBoundingClientRect().top - msgs.getBoundingClientRect().top + msgs.scrollTop;
+      msgs.scrollTop = (msgs.scrollHeight - top <= msgs.clientHeight) ? top - 8 : msgs.scrollHeight;
+    } catch (e) {}
+  }
+  // Abrir/cerrar el chat. En celular: bloquea el scroll de la página de fondo y se ajusta al área visible (teclado, barra del navegador)
+  var lockedScroll = null;
+  function lockScroll(on) {
+    try {
+      var de = document.documentElement, b = document.body;
+      if (on && !lockedScroll) { lockedScroll = { de: de.style.overflow, b: b.style.overflow }; de.style.overflow = "hidden"; b.style.overflow = "hidden"; }
+      else if (!on && lockedScroll) { de.style.overflow = lockedScroll.de; b.style.overflow = lockedScroll.b; lockedScroll = null; }
+    } catch (e) {}
+  }
+  function syncViewport() {
+    var vv = window.visualViewport;
+    if (!isSmall() || !panel.classList.contains("open") || !vv) { panel.style.top = ""; panel.style.height = ""; panel.style.bottom = ""; return; }
+    panel.style.top = vv.offsetTop + "px"; panel.style.bottom = "auto"; panel.style.height = vv.height + "px";
+  }
+  function setOpen(on) {
+    panel.classList.toggle("open", on);
+    host.classList.toggle("chq-open", on);
+    lockScroll(on && isSmall());
+    syncViewport();
+  }
+  // Tarjetas de producto dentro del chat (celular): carrusel deslizable con foto, opciones y botones de compra
+  function addInlineProducts(list) {
+    list = validProducts(list);
+    if (!list.length) return;
+    var car = el("div", "pcar");
+    list.forEach(function (p) { car.appendChild(productCard(p)); });
+    msgs.appendChild(car);
+    if (list.length > 1) msgs.appendChild(el("div", "phint", "Deslizá para ver los " + list.length + " productos ▸"));
+  }
 
   /* ---------- Panel lateral: pestañas Filtros / Productos ---------- */
   function showTab(name) {
@@ -515,18 +591,20 @@
     add("user", userText);
     history.push({ role: "user", content: userText }); save();
     var bubble = add("bot", ""); bubble.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+    var keepScroll = false;
     post({ action: "filter_search", filtros: f })
       .then(function (d) {
+        var mob = isSmall();
         var text = d.total
-          ? "Encontré " + d.total + " producto" + (d.total > 1 ? "s" : "") + " con esos filtros" + (d.productos.length < d.total ? " (te muestro los " + d.productos.length + " más económicos)" : "") + ". Los ves en el panel de la izquierda."
+          ? "Encontré " + d.total + " producto" + (d.total > 1 ? "s" : "") + " con esos filtros" + (d.productos.length < d.total ? " (te muestro los " + d.productos.length + " más económicos)" : "") + (mob ? ". Deslizá para verlos." : ". Los ves en el panel de la izquierda.")
           : "No encontré productos con esos filtros. Podés ampliar el rango de precio o cambiar la categoría.";
         bubble.innerHTML = render(text);
         history.push({ role: "assistant", content: text, products: d.productos || [] }); save();
-        setProducts(d.productos, true);
-        addProductsChip(d.productos);
+        if (mob) { closeSide(); addInlineProducts(d.productos); keepScroll = true; scrollToEl(bubble); }
+        else { setProducts(d.productos, true); addProductsChip(d.productos); }
       })
       .catch(function () { bubble.innerHTML = 'No pude traer los productos en este momento. Escribinos por WhatsApp: <a href="' + WA + '" target="_blank" rel="noopener">abrir chat</a>.'; history.pop(); save(); })
-      .then(function () { setBusy(false); msgs.scrollTop = msgs.scrollHeight; });
+      .then(function () { setBusy(false); if (!keepScroll) msgs.scrollTop = msgs.scrollHeight; });
   }
 
   /* ---------- Chat ---------- */
@@ -540,7 +618,10 @@
     var last = null;
     history.forEach(function (m) {
       add(m.role === "user" ? "user" : "bot", m.content);
-      if (m.products && m.products.length) { addProductsChip(m.products); last = m.products; }
+      if (m.products && m.products.length) {
+        if (isSmall()) addInlineProducts(m.products); // celular: los productos van dentro del chat
+        else { addProductsChip(m.products); last = m.products; }
+      }
     });
     setProducts(last || [], false);
     if (!history.length) showChips();
@@ -550,14 +631,14 @@
     if (busy) return;
     thread = newThread(); history = thread.messages;
     closeMenu(); closeSide(); renderThread();
-    input.focus();
+    if (!isSmall()) input.focus();
   }
   function openThread(t) {
     if (busy) return;
     thread = { id: t.id, title: t.title, createdAt: t.createdAt, updatedAt: t.updatedAt, messages: (t.messages || []).slice() };
     history = thread.messages;
     closeMenu(); closeSide(); renderThread();
-    input.focus();
+    if (!isSmall()) input.focus();
   }
   function deleteThread(id) {
     writeAll(readAll().filter(function (t) { return t.id !== id; }));
@@ -597,9 +678,9 @@
   }
 
   function open() {
-    panel.classList.add("open");
+    setOpen(true);
     if (!msgs.children.length) renderThread();
-    input.focus();
+    if (!isSmall()) input.focus(); // en celular no se abre el teclado solo: taparía el saludo y las sugerencias
   }
   function showChips() {
     chips.innerHTML = "";
@@ -616,28 +697,32 @@
     add("user", text);
     history.push({ role: "user", content: text }); save();
     var typing = add("bot", ""); typing.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+    var keepScroll = false;
     post({ messages: history.slice(-10).map(function (m) { return { role: m.role, content: m.content }; }) })
       .then(function (d) {
         typing.innerHTML = render(d.reply);
         history.push({ role: "assistant", content: d.reply, products: d.products || [] }); save();
         if (validProducts(d.products).length) {
-          setProducts(d.products, !isSmall()); // en pantallas pequeñas no tapamos el chat: queda el botón
-          addProductsChip(d.products);
+          if (isSmall()) { addInlineProducts(d.products); keepScroll = true; scrollToEl(typing); } // celular: carrusel dentro del chat
+          else { setProducts(d.products, true); addProductsChip(d.products); }                      // escritorio: panel lateral
         }
+        // Filtros, mapa y contacto se abren solos (en celular suben como hoja inferior)
         (d.widgets || []).forEach(function (w) {
           var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
-          if (!tab) return;
-          if (!isSmall()) { openSide(tab); return; }
-          var b = el("button", "vp", tab === "f" ? "Abrir filtros ▸" : tab === "c" ? "Ver opciones de contacto ▸" : "Ver mapa ▸");
-          b.type = "button"; b.onclick = function () { openSide(tab); }; msgs.appendChild(b);
+          if (tab) openSide(tab);
         });
       })
       .catch(function () { typing.innerHTML = 'Tuve un inconveniente para responderte. Escribinos por WhatsApp y con gusto te ayudamos: <a href="' + WA + '" target="_blank" rel="noopener">abrir chat</a>.'; history.pop(); save(); })
-      .then(function () { setBusy(false); msgs.scrollTop = msgs.scrollHeight; input.focus(); });
+      .then(function () { setBusy(false); if (!keepScroll) msgs.scrollTop = msgs.scrollHeight; if (!isSmall()) input.focus(); });
   }
 
-  btn.onclick = function () { panel.classList.contains("open") ? panel.classList.remove("open") : open(); };
-  $(".x").onclick = function () { panel.classList.remove("open"); };
+  btn.onclick = function () { panel.classList.contains("open") ? setOpen(false) : open(); };
+  $(".x").onclick = function () { closeSide(); setOpen(false); };
+  $(".scrim").onclick = closeSide; // celular: tocar fuera de la hoja inferior la cierra
+  input.addEventListener("focus", function () { if (isSmall()) setTimeout(function () { msgs.scrollTop = msgs.scrollHeight; }, 350); });
+  if (window.visualViewport) { window.visualViewport.addEventListener("resize", syncViewport); window.visualViewport.addEventListener("scroll", syncViewport); }
+  window.addEventListener("resize", syncViewport);
+  window.addEventListener("orientationchange", syncViewport);
   var maxBtn = $(".max-btn");
   maxBtn.onclick = function () {
     var on = panel.classList.toggle("max");
