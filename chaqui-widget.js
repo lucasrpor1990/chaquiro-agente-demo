@@ -333,7 +333,8 @@
     if (name === "c") loadContact();
   }
   // Panel de contacto: botones directos (WhatsApp, llamada, correo), horario y dirección. Se crea la primera vez que se abre.
-  var SUPPORT_PHONE = "+573105145907", SUPPORT_PHONE_TXT = "+57 310 514 5907", SUPPORT_EMAIL = "contacto@chaquiro.com", WA_TXT = "+57 318 472 0787";
+  // El teléfono para llamadas es el mismo número del WhatsApp; el correo de contacto es redes@chaquiro.com
+  var SUPPORT_PHONE = "+573184720787", SUPPORT_PHONE_TXT = "+57 318 472 0787", SUPPORT_EMAIL = "redes@chaquiro.com", WA_TXT = "+57 318 472 0787";
   var ICONS = {
     wa: '<svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>',
     tel: '<svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>',
