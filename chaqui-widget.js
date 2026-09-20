@@ -90,6 +90,16 @@
     ".in{flex:1;border:1px solid rgba(49,62,50,.2);background:#fff;border-radius:14px;padding:10px 12px;font-size:14px;color:#313e32;outline:none}.in:focus{border-color:var(--chq-green)}" +
     ".send{background:var(--chq-green);color:#f7f9ed;border:0;border-radius:14px;padding:0 14px;cursor:pointer;font-weight:600}.send:disabled{opacity:.5;cursor:default}" +
     ".foot{font-size:11px;text-align:center;color:#6b756a;padding:0 10px 8px}.foot a{color:#6b756a}" +
+    /* tarjetas de video (YouTube) dentro del chat */
+    ".vlist{flex:none;display:flex;flex-direction:column;gap:8px;align-self:stretch}" +
+    ".vc{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid rgba(49,62,50,.12);border-radius:12px;padding:8px;text-decoration:none;color:inherit;transition:border-color .15s}" +
+    ".vc:hover{border-color:rgba(255,216,117,.95)}" +
+    ".vth{position:relative;flex:none;width:112px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#313e32}" +
+    ".vth img{width:100%;height:100%;object-fit:cover;display:block}" +
+    ".vplay{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(49,62,50,.85);display:flex;align-items:center;justify-content:center}" +
+    ".vplay:after{content:'';border-left:10px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:3px}" +
+    ".vdur{position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.75);color:#fff;font-size:11px;padding:1px 5px;border-radius:4px}" +
+    ".vtx{min-width:0;font-size:13px;line-height:1.3}.vtx b{display:block;font-weight:600;color:#313e32;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.vtx small{display:block;margin-top:3px;font-size:11px;color:#5d6a5e}" +
     /* tarjetas de producto */
     ".plist{display:flex;flex-direction:column;gap:10px}" +
     ".pc{background:#fff;border:1px solid rgba(49,62,50,.12);border-radius:12px;padding:12px;transition:border-color .15s}" +
@@ -242,7 +252,7 @@
     }
     var copy = {
       id: thread.id, title: thread.title, createdAt: thread.createdAt, updatedAt: thread.updatedAt,
-      messages: history.slice(-MAX_SAVED_MSGS).map(function (m) { return { role: m.role, content: m.content, products: m.products && m.products.length ? slimProducts(m.products) : undefined }; })
+      messages: history.slice(-MAX_SAVED_MSGS).map(function (m) { return { role: m.role, content: m.content, products: m.products && m.products.length ? slimProducts(m.products) : undefined, videos: m.videos && m.videos.length ? m.videos : undefined }; })
     };
     var all = readAll().filter(function (t) { return t.id !== thread.id; });
     all.push(copy);
@@ -306,6 +316,26 @@
     host.classList.toggle("chq-open", on);
     lockScroll(on && isSmall());
     syncViewport();
+  }
+  // Tarjetas de video de YouTube dentro del chat (escritorio y celular): miniatura + título; abre YouTube en otra pestaña
+  function validVideos(list) {
+    return (list || []).filter(function (v) { return v && /^[\w-]{11}$/.test(v.id || "") && v.titulo; });
+  }
+  function addVideos(list) {
+    list = validVideos(list);
+    if (!list.length) return;
+    var box = el("div", "vlist");
+    list.forEach(function (v) {
+      var a = el("a", "vc"); a.href = "https://www.youtube.com/watch?v=" + v.id; a.target = "_blank"; a.rel = "noopener";
+      var th = el("span", "vth"), im = document.createElement("img");
+      im.src = "https://i.ytimg.com/vi/" + v.id + "/mqdefault.jpg"; im.alt = ""; im.loading = "lazy";
+      th.appendChild(im); th.appendChild(el("span", "vplay"));
+      if (v.duracion) th.appendChild(el("span", "vdur", v.duracion));
+      var tx = el("span", "vtx"); tx.appendChild(el("b", "", v.titulo)); tx.appendChild(el("small", "", "Ver en YouTube"));
+      a.appendChild(th); a.appendChild(tx); box.appendChild(a);
+      a.addEventListener("click", function () { try { window.Shopify && Shopify.analytics && Shopify.analytics.publish("chaqui:video_click", { id: v.id }); } catch (e) {} });
+    });
+    msgs.appendChild(box);
   }
   // Tarjetas de producto dentro del chat (celular): carrusel deslizable con foto, opciones y botones de compra
   function addInlineProducts(list) {
@@ -627,6 +657,7 @@
         if (isSmall()) addInlineProducts(m.products); // celular: los productos van dentro del chat
         else { addProductsChip(m.products); last = m.products; }
       }
+      if (m.videos && m.videos.length) addVideos(m.videos);
     });
     setProducts(last || [], false);
     if (!history.length) showChips();
@@ -706,11 +737,12 @@
     post({ messages: history.slice(-10).map(function (m) { return { role: m.role, content: m.content }; }) })
       .then(function (d) {
         typing.innerHTML = render(d.reply);
-        history.push({ role: "assistant", content: d.reply, products: d.products || [] }); save();
+        history.push({ role: "assistant", content: d.reply, products: d.products || [], videos: validVideos(d.videos) }); save();
         if (validProducts(d.products).length) {
           if (isSmall()) { addInlineProducts(d.products); keepScroll = true; scrollToEl(typing); } // celular: carrusel dentro del chat
           else { setProducts(d.products, true); addProductsChip(d.products); }                      // escritorio: panel lateral
         }
+        if (validVideos(d.videos).length) { addVideos(d.videos); if (!validProducts(d.products).length) { keepScroll = true; scrollToEl(typing); } }
         // Filtros, mapa y contacto se abren solos (en celular suben como hoja inferior)
         (d.widgets || []).forEach(function (w) {
           var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
