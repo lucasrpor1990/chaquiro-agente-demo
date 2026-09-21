@@ -134,7 +134,8 @@
     ".cstat a{color:#003331;font-weight:700;text-decoration:underline}" +
     ".dd{font-size:12.5px;line-height:1.5;color:#3f4a3f;padding-top:6px;white-space:pre-wrap}" +
     ".dd ul{margin:6px 0 0;padding-left:18px}" +
-    ".vb{display:inline-block;margin-top:8px;background:var(--chq-green);color:#f7f9ed;text-decoration:none;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px}" +
+    ".vb{display:inline-block;margin-top:8px;background:var(--chq-green);color:#f7f9ed;text-decoration:none;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}" +
+    ".vb2{background:#fff;color:var(--chq-green);border:1px solid var(--chq-green);margin-left:8px}" +
     /* barra de conversaciones: historial + nuevo chat */
     ".ctop{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(49,62,50,.12);background:#f7f9ed;flex:none}" +
     ".ctop button{font-size:13px;font-weight:600;cursor:pointer;border-radius:10px;padding:7px 12px;border:1px solid rgba(49,62,50,.22);background:#fff;color:#313e32}" +
@@ -563,7 +564,9 @@
         dd.appendChild(ul);
       }
       var go = el("a", "vb", "Ver en la tienda"); go.href = p.url; go.target = "_blank"; go.rel = "noopener";
-      dd.appendChild(document.createElement("br")); dd.appendChild(go);
+      var more = el("button", "vb vb2", "Ver más detalles"); more.type = "button";
+      more.onclick = function () { track("more_details", { product: p.titulo }); ask("Contame más detalles sobre " + (p.titulo || "este producto")); };
+      dd.appendChild(document.createElement("br")); dd.appendChild(go); dd.appendChild(more);
       det.appendChild(dd);
       card.appendChild(det);
     }
