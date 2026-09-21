@@ -192,7 +192,7 @@
     "@media(max-height:520px){.sub{display:none}.head{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}.ib{padding:8px 12px}.ctop{padding:4px 12px}.ctop button{min-height:36px;padding:6px 12px}.form{padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}.chips{padding-bottom:4px}}" +
     "</style>" +
     '<div class="greet" role="button" tabindex="0"><button class="greet-x" aria-label="Cerrar">✕</button>' +
-    '<div class="greet-top"><img src="' + AVATAR + '" alt=""><div class="greet-title">Pregúntale a Chaqui</div></div></div>' +
+    '<div class="greet-top"><img src="' + AVATAR + '" alt=""><div class="greet-title">¡Pregúntale a Chaqui!</div></div></div>' +
     '<button class="btn" aria-label="Abrir chat con Chaqui"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></button>' +
     '<section class="panel" role="dialog" aria-label="Chat con Chaqui">' +
     '<div class="head"><div><div class="brand"><img class="icon" alt="" src="' + ICON + '"><img class="logo" alt="Chaqui" src="' + LOGO + '"></div><div class="sub">Asistente de Chaquiro</div></div>' +
