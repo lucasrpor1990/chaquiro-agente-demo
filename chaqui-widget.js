@@ -239,7 +239,7 @@
   }
   function slimProducts(list) {
     return (list || []).map(function (p) {
-      return { titulo: p.titulo, url: p.url, precio: p.precio, disponible: p.disponible, imagen: p.imagen, detalle: (p.detalle || "").slice(0, 350), variantes: p.variantes, vars: p.vars };
+      return { titulo: p.titulo, url: p.url, precio: p.precio, disponible: p.disponible, imagen: p.imagen, detalle: (p.detalle || "").slice(0, 350), variantes: p.variantes, vars: p.vars, stock: p.stock };
     });
   }
   // Guarda la conversación actual (solo si el usuario ya escribió algo)
@@ -479,7 +479,8 @@
       minus.disabled = qty <= 1; plus.disabled = qty >= 10;
       if (vars.length > 1) ppEl.textContent = cur.p;
       var ok = !!cur.a;
-      bdEl.className = "bd " + (ok ? "ok" : "no"); bdEl.textContent = ok ? "En stock" : "Agotado";
+      var stockTxt = typeof p.stock === "number" && p.stock > 0 ? p.stock + " disponibles" : "En stock";
+      bdEl.className = "bd " + (ok ? "ok" : "no"); bdEl.textContent = ok ? stockTxt : "Agotado";
       add.disabled = !ok; now.disabled = !ok;
       stat.textContent = "";
     }
