@@ -31,12 +31,12 @@
     "*{box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif}" +
     ".btn{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;background:var(--chq-green);color:#f7f9ed;border:2px solid #ffd875;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:2147483000;transition:transform .15s}" +
     ".btn:hover{transform:scale(1.06)}.btn svg{width:28px;height:28px;fill:currentColor}" +
-    ".greet{position:fixed;right:20px;bottom:92px;width:270px;max-width:calc(100vw - 40px);background:#f7f9ed;color:var(--chq-green);border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.28);padding:16px;z-index:2147483000;border:1px solid rgba(49,62,50,.1)}" +
-    ".greet-x{position:absolute;top:8px;right:8px;width:24px;height:24px;border:none;background:transparent;color:var(--chq-green);opacity:.6;font-size:15px;cursor:pointer;line-height:1;padding:0}.greet-x:hover{opacity:1}" +
-    ".greet-top{display:flex;align-items:center;gap:12px;padding-right:14px}" +
-    ".greet-top img{height:64px;width:auto;object-fit:contain;flex:none}" +
+    ".greet{position:fixed;right:20px;bottom:92px;width:240px;max-width:calc(100vw - 40px);background:#f7f9ed;color:var(--chq-green);border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.28);padding:12px;z-index:2147483000;border:1px solid rgba(49,62,50,.1);cursor:pointer;transition:transform .15s}" +
+    ".greet:hover{transform:scale(1.02)}" +
+    ".greet-x{position:absolute;top:6px;right:6px;width:22px;height:22px;border:none;background:transparent;color:var(--chq-green);opacity:.6;font-size:14px;cursor:pointer;line-height:1;padding:0;z-index:1}.greet-x:hover{opacity:1}" +
+    ".greet-top{display:flex;align-items:center;gap:12px}" +
+    ".greet-top img{height:56px;width:auto;object-fit:contain;flex:none}" +
     ".greet-title{font-weight:700;font-size:15px;line-height:1.3}" +
-    ".greet-cta{display:block;width:100%;margin-top:12px;background:var(--chq-green);color:#f7f9ed;border:none;border-radius:10px;padding:10px 12px;font:600 14px inherit;cursor:pointer}.greet-cta:hover{background:var(--chq-green-hover)}" +
     ":host(.chq-open) .greet{display:none}" +
     ".panel{position:fixed;right:20px;bottom:92px;width:430px;max-width:calc(100vw - 24px);height:660px;max-height:calc(100vh - 110px);background:#f7f9ed;color:#313e32;border-radius:16px;box-shadow:0 30px 80px -20px rgba(13,17,23,.35),0 8px 24px rgba(13,17,23,.15);display:none;flex-direction:column;overflow:hidden;z-index:2147483000;transition:width .2s ease}" +
     ".panel.open{display:flex}" +
@@ -160,7 +160,7 @@
     ".max-btn{display:none}" +
     ":host(.chq-open) .btn{display:none}" +
     ".btn{right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:58px;height:58px}" +
-    ".greet{right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:250px}" +
+    ".greet{right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:220px}" +
     ".panel,.panel.open,.panel.side-open,.panel.max{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;max-width:none;height:100vh;height:100dvh;max-height:none;border-radius:0;box-shadow:none;transition:none}" +
     ".head{padding:calc(14px + env(safe-area-inset-top)) 6px 12px 14px}" +
     ".ib{padding:12px;font-size:20px}" +
@@ -191,9 +191,8 @@
     /* teléfono en horizontal: poca altura, se compactan cabecera y barras para dejar espacio a los mensajes */
     "@media(max-height:520px){.sub{display:none}.head{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}.ib{padding:8px 12px}.ctop{padding:4px 12px}.ctop button{min-height:36px;padding:6px 12px}.form{padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}.chips{padding-bottom:4px}}" +
     "</style>" +
-    '<div class="greet"><button class="greet-x" aria-label="Cerrar">✕</button>' +
-    '<div class="greet-top"><img src="' + AVATAR + '" alt=""><div class="greet-title">¡Hola! Soy Chaqui</div></div>' +
-    '<button class="greet-cta" type="button">Pregúntale a Chaqui</button></div>' +
+    '<div class="greet" role="button" tabindex="0"><button class="greet-x" aria-label="Cerrar">✕</button>' +
+    '<div class="greet-top"><img src="' + AVATAR + '" alt=""><div class="greet-title">Pregúntale a Chaqui</div></div></div>' +
     '<button class="btn" aria-label="Abrir chat con Chaqui"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></button>' +
     '<section class="panel" role="dialog" aria-label="Chat con Chaqui">' +
     '<div class="head"><div><div class="brand"><img class="icon" alt="" src="' + ICON + '"><img class="logo" alt="Chaqui" src="' + LOGO + '"></div><div class="sub">Asistente de Chaquiro</div></div>' +
@@ -767,7 +766,8 @@
   }
 
   btn.onclick = function () { panel.classList.contains("open") ? setOpen(false) : open(); };
-  $(".greet-cta").onclick = function () { open(); };
+  greet.onclick = function () { open(); };
+  greet.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } };
   $(".greet-x").onclick = function (e) { e.stopPropagation(); greet.style.display = "none"; };
   $(".x").onclick = function () { closeSide(); setOpen(false); };
   $(".scrim").onclick = closeSide; // celular: tocar fuera de la hoja inferior la cierra
