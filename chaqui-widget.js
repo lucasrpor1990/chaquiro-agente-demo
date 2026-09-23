@@ -94,7 +94,7 @@
     ".typing{display:inline-flex;gap:4px}.typing i{width:6px;height:6px;border-radius:50%;background:#6b756a;animation:b 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}" +
     "@keyframes b{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}" +
     ".form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(49,62,50,.12);background:#f7f9ed}" +
-    ".in{flex:1;border:1px solid rgba(49,62,50,.2);background:#fff;border-radius:14px;padding:10px 12px;font-size:14px;color:#313e32;outline:none}.in:focus{border-color:var(--chq-green)}" +
+    ".in{flex:1;min-width:0;border:1px solid rgba(49,62,50,.2);background:#fff;border-radius:14px;padding:10px 12px;font-size:14px;color:#313e32;outline:none}.in:focus{border-color:var(--chq-green)}" +
     ".send{background:var(--chq-green);color:#f7f9ed;border:0;border-radius:14px;padding:0 14px;cursor:pointer;font-weight:600}.send:disabled{opacity:.5;cursor:default}" +
     ".attach-btn,.mic-btn{background:none;border:0;color:var(--chq-green);cursor:pointer;padding:0 6px;border-radius:10px;display:flex;align-items:center;flex:none}.attach-btn:hover,.mic-btn:hover{background:rgba(49,62,50,.08)}.attach-btn svg,.mic-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.attach-btn:disabled,.mic-btn:disabled{opacity:.5;cursor:default}" +
     ".preview{display:flex;align-items:center;gap:8px;padding:8px 12px 0;background:#f7f9ed}.preview img{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid rgba(49,62,50,.15)}.preview span{font-size:12px;color:#313e32;opacity:.7}.preview .px{margin-left:auto;background:none;border:0;color:var(--chq-green);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:8px}.preview .px:hover{background:rgba(49,62,50,.08)}" +
@@ -142,6 +142,7 @@
     ".qty span{min-width:28px;text-align:center;font-size:14px;font-weight:700}" +
     ".bb{flex:1;padding:10px 6px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--chq-green);line-height:1.2}" +
     ".bb.add{background:#fff;color:var(--chq-green)}.bb.add:hover:not(:disabled){background:#f1f3e2}.bb.now{background:var(--chq-green);color:#f7f9ed}.bb.now:hover:not(:disabled){background:var(--chq-green-hover)}" +
+    ".bb.vid{background:#fff;color:var(--chq-green);text-decoration:none;display:flex;align-items:center;justify-content:center}.bb.vid:hover{background:#f1f3e2}" +
     ".bb:disabled{opacity:.4;cursor:default}" +
     ".cstat{font-size:12.5px;line-height:1.45;color:#3f4a3f}.cstat:empty{display:none}.cstat.ok{color:#2b6a12;font-weight:600}.cstat.err{color:#b02a2a}" +
     ".cstat a{color:#003331;font-weight:700;text-decoration:underline}" +
@@ -661,6 +662,13 @@
     var now = el("button", "bb now", "Comprar ahora"); now.type = "button";
     row2.appendChild(add); row2.appendChild(now);
     box.appendChild(row2);
+    if (p.video && p.video.id) {
+      var row3 = el("div", "brow");
+      var vid = el("a", "bb vid", "▶ Ver video"); vid.href = "https://www.youtube.com/watch?v=" + p.video.id; vid.target = "_blank"; vid.rel = "noopener";
+      vid.onclick = function () { track("ver_video_producto", { product: p.titulo, video: p.video.id }); };
+      row3.appendChild(vid);
+      box.appendChild(row3);
+    }
     var stat = el("div", "cstat");
     box.appendChild(stat);
 
