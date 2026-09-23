@@ -96,6 +96,18 @@
     ".form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(49,62,50,.12);background:#f7f9ed}" +
     ".in{flex:1;border:1px solid rgba(49,62,50,.2);background:#fff;border-radius:14px;padding:10px 12px;font-size:14px;color:#313e32;outline:none}.in:focus{border-color:var(--chq-green)}" +
     ".send{background:var(--chq-green);color:#f7f9ed;border:0;border-radius:14px;padding:0 14px;cursor:pointer;font-weight:600}.send:disabled{opacity:.5;cursor:default}" +
+    ".attach-btn,.mic-btn{background:none;border:0;color:var(--chq-green);cursor:pointer;padding:0 6px;border-radius:10px;display:flex;align-items:center;flex:none}.attach-btn:hover,.mic-btn:hover{background:rgba(49,62,50,.08)}.attach-btn svg,.mic-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.attach-btn:disabled,.mic-btn:disabled{opacity:.5;cursor:default}" +
+    ".preview{display:flex;align-items:center;gap:8px;padding:8px 12px 0;background:#f7f9ed}.preview img{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid rgba(49,62,50,.15)}.preview span{font-size:12px;color:#313e32;opacity:.7}.preview .px{margin-left:auto;background:none;border:0;color:var(--chq-green);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:8px}.preview .px:hover{background:rgba(49,62,50,.08)}" +
+    ".msg-img{display:block;max-width:180px;border-radius:10px;margin-top:6px}" +
+    ".rec-row{display:flex;align-items:center;gap:8px;flex:1;background:#fff;border:1px solid rgba(49,62,50,.2);border-radius:14px;padding:0 6px 0 12px;min-width:0}" +
+    ".rec-dot{width:9px;height:9px;border-radius:50%;background:#c0392b;flex:none;animation:chq-pulse 1.1s ease-in-out infinite}" +
+    "@keyframes chq-pulse{0%,100%{opacity:1}50%{opacity:.3}}" +
+    ".rec-time{font-size:13px;color:#313e32;font-variant-numeric:tabular-nums;flex:none}" +
+    ".rec-hint{font-size:13px;color:#313e32;opacity:.6;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+    ".rec-cancel{background:rgba(192,57,57,.12);border:0;color:#c0392b;cursor:pointer;font-size:13px;font-weight:600;padding:7px 10px;border-radius:10px;flex:none;white-space:nowrap}.rec-cancel:hover{background:rgba(192,57,57,.22)}" +
+    ".reply-audio{display:block;max-width:230px;height:32px;margin-top:6px}" +
+    ".chat.drag-over{outline:2px dashed var(--chq-green);outline-offset:-4px;background:rgba(49,62,50,.05)}" +
+    ".chat.drag-over::after{content:'Soltá la imagen acá';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(247,249,237,.85);color:var(--chq-green);font-weight:600;font-size:15px;pointer-events:none;z-index:5}" +
     ".foot{font-size:11px;text-align:center;color:#6b756a;padding:0 10px 8px}.foot a{color:#6b756a}" +
     /* tarjetas de video (YouTube) dentro del chat */
     ".vlist{flex:none;display:flex;flex-direction:column;gap:8px;align-self:stretch}" +
@@ -172,6 +184,8 @@
     ".form{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}" +
     ".in{font-size:16px;padding:12px 14px}" +
     ".send{padding:0 18px;font-size:15px;min-height:46px}" +
+    ".attach-btn,.mic-btn{padding:0 8px}.attach-btn svg,.mic-btn svg{width:22px;height:22px}" +
+    ".rec-row{padding:0 12px;min-height:46px}" +
     ".foot{display:none}" +
     ".body{position:relative}" +
     ".panel.side-open .scrim{display:block;position:absolute;inset:0;background:rgba(0,0,0,.42);z-index:19}" +
@@ -190,12 +204,15 @@
     "}" +
     /* teléfono en horizontal: poca altura, se compactan cabecera y barras para dejar espacio a los mensajes */
     "@media(max-height:520px){.sub{display:none}.head{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:6px}.ib{padding:8px 12px}.ctop{padding:4px 12px}.ctop button{min-height:36px;padding:6px 12px}.form{padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom))}.chips{padding-bottom:4px}}" +
+    // El atributo "hidden" pierde contra cualquier regla con "display" propio (attach-btn/mic-btn/rec-row/preview lo tienen);
+    // sin este selector [hidden] (más específico) esos elementos quedaban siempre visibles aunque .hidden = true.
+    ".attach-btn[hidden],.mic-btn[hidden],.rec-row[hidden],.preview[hidden]{display:none}" +
     "</style>" +
     '<div class="greet" role="button" tabindex="0"><button class="greet-x" aria-label="Cerrar">✕</button>' +
     '<div class="greet-top"><img src="' + AVATAR + '" alt=""><div class="greet-title">¡Pregúntale a Chaqui!</div></div></div>' +
     '<button class="btn" aria-label="Abrir chat con Chaqui"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></button>' +
     '<section class="panel" role="dialog" aria-label="Chat con Chaqui">' +
-    '<div class="head"><div><div class="brand"><img class="icon" alt="" src="' + AVATAR + '"><img class="logo" alt="Chaqui" src="' + LOGO + '"></div><div class="sub">Asistente de Chaquiro</div></div>' +
+    '<div class="head"><div><div class="brand"><img class="icon" alt="" src="' + AVATAR + '"><img class="logo" alt="Chaqui" src="' + LOGO + '"></div><div class="sub">Asistente virtual de Chaquiro</div></div>' +
     '<div class="hb">' +
     '<button class="ib filt-btn" aria-label="Filtros y productos" title="Filtros y productos"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>' +
     '<button class="ib max-btn" aria-label="Maximizar" title="Maximizar">⤢</button>' +
@@ -214,12 +231,21 @@
     '<div class="chat">' +
     '<div class="ctop"><div class="hwrap"><button class="hist-btn" type="button" aria-haspopup="true">Conversaciones ▾</button><div class="hmenu"></div></div><button class="new-btn" type="button">＋ Nuevo chat</button></div>' +
     '<div class="msgs" aria-live="polite"></div><div class="chips"></div>' +
-    '<form class="form"><input class="in" maxlength="500" placeholder="Escribí tu pregunta…" autocomplete="off"><button class="send" type="submit">Enviar</button></form>' +
+    '<div class="preview" hidden></div>' +
+    '<form class="form"><input class="file-in" type="file" accept="image/*" hidden><button class="attach-btn" type="button" aria-label="Adjuntar foto" title="Adjuntar foto"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="M21 16l-5.5-5.5-4 4L9 12l-6 6"/></svg></button><input class="in" maxlength="500" placeholder="Escribí tu pregunta…" autocomplete="off">' +
+    '<div class="rec-row" hidden><span class="rec-dot"></span><span class="rec-time">0:00</span><span class="rec-hint">Nota de voz</span><button class="rec-cancel" type="button" aria-label="Cancelar grabación" title="Cancelar">✕ Cancelar</button></div>' +
+    '<button class="mic-btn" type="button" aria-label="Grabar nota de voz" title="Grabar nota de voz"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/></svg></button>' +
+    '<button class="send" type="submit">Enviar</button></form>' +
     '<div class="foot">Asistente con IA · puede equivocarse · <a href="' + WA + '" target="_blank" rel="noopener">WhatsApp</a></div></div>' +
     "</div></section>";
 
   var $ = function (s) { return root.querySelector(s); };
   var btn = $(".btn"), greet = $(".greet"), panel = $(".panel"), side = $(".side"), msgs = $(".msgs"), chips = $(".chips"), form = $(".form"), input = $(".in"), send = $(".send");
+  var attachBtn = $(".attach-btn"), fileIn = $(".file-in"), preview = $(".preview");
+  var pendingImage = null; // { mediaType, data } en base64, listo para adjuntar al próximo mensaje
+  var micBtn = $(".mic-btn"), recRow = $(".rec-row"), recTime = $(".rec-time"), recCancelBtn = $(".rec-cancel");
+  var mediaStream = null, mediaRecorder = null, recChunks = [], recTimer = null, recStart = 0, recCancelled = false;
+  var MAX_REC_MS = 120000; // 2 min: deja margen bajo MAX_AUDIO_B64 en api.js
   var cats = $(".cats"), pmin = $(".pmin"), pmax = $(".pmax"), avail = $(".avail"), paneP = $(".pane-p"), cnt = $(".cnt");
   var tabF = $(".tab-f"), tabP = $(".tab-p"), tabM = $(".tab-m"), paneM = $(".pane-m"), filtBtn = $(".filt-btn");
   var tabC = $(".tab-c"), paneC = $(".pane-c");
@@ -296,7 +322,152 @@
     return fetch(ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
   }
+  // Achica cualquier foto a máx. 1024px de lado y la vuelve JPEG, para que el payload viaje liviano.
+  function downscaleImage(file, cb) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        var max = 1024, w = img.naturalWidth, h = img.naturalHeight;
+        var scale = Math.min(1, max / Math.max(w, h));
+        var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+        var c = document.createElement("canvas"); c.width = cw; c.height = ch;
+        c.getContext("2d").drawImage(img, 0, 0, cw, ch);
+        var url = c.toDataURL("image/jpeg", 0.82);
+        cb(url, "image/jpeg");
+      };
+      img.onerror = function () {};
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  function clearPending() { pendingImage = null; preview.hidden = true; preview.innerHTML = ""; }
+  function showPreview(dataUrl) {
+    preview.innerHTML = "";
+    var im = document.createElement("img"); im.src = dataUrl;
+    var span = el("span", "", "Foto lista para enviar");
+    var x = el("button", "px", "✕"); x.type = "button"; x.setAttribute("aria-label", "Quitar foto"); x.onclick = clearPending;
+    preview.appendChild(im); preview.appendChild(span); preview.appendChild(x);
+    preview.hidden = false;
+  }
+  function stageImageFile(f) {
+    if (!f || !/^image\//.test(f.type) || busy) return;
+    downscaleImage(f, function (dataUrl, mediaType) {
+      pendingImage = { mediaType: mediaType, data: dataUrl.split(",")[1] };
+      showPreview(dataUrl);
+    });
+  }
+  attachBtn.onclick = function () { fileIn.click(); };
+  fileIn.onchange = function () { var f = fileIn.files[0]; fileIn.value = ""; stageImageFile(f); };
+  // Pegar una imagen (Ctrl+V) directo en el campo de texto.
+  input.addEventListener("paste", function (e) {
+    var items = (e.clipboardData || window.clipboardData || {}).items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+      if (/^image\//.test(items[i].type)) { e.preventDefault(); stageImageFile(items[i].getAsFile()); break; }
+    }
+  });
+  // Arrastrar y soltar una imagen sobre el chat.
+  var chatEl = $(".chat"), dragDepth = 0;
+  chatEl.addEventListener("dragenter", function (e) { if (!e.dataTransfer || Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") === -1) return; e.preventDefault(); dragDepth++; chatEl.classList.add("drag-over"); });
+  chatEl.addEventListener("dragover", function (e) { if (!e.dataTransfer || Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") === -1) return; e.preventDefault(); });
+  chatEl.addEventListener("dragleave", function () { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) chatEl.classList.remove("drag-over"); });
+  chatEl.addEventListener("drop", function (e) {
+    e.preventDefault(); dragDepth = 0; chatEl.classList.remove("drag-over");
+    stageImageFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
+  });
   function money(n) { return "$" + Number(n).toLocaleString("es-CO"); }
+  /* ---------- Notas de voz: grabar (mic) y reproducir la respuesta con la voz de Gonzalo ---------- */
+  function pickMicType() {
+    var types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+    for (var i = 0; i < types.length; i++) { if (window.MediaRecorder && MediaRecorder.isTypeSupported(types[i])) return types[i]; }
+    return "";
+  }
+  function fmtRecTime(ms) { var s = Math.floor(ms / 1000); return Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60); }
+  function setRecUI(on) {
+    input.hidden = on; attachBtn.hidden = on; micBtn.hidden = on; recRow.hidden = !on;
+  }
+  function stopRec(cancel) {
+    recCancelled = !!cancel;
+    if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+  }
+  function startRec() {
+    if (busy || mediaRecorder) return;
+    if (!navigator.mediaDevices || !window.MediaRecorder) { alert("Este navegador no permite grabar notas de voz."); return; }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      mediaStream = stream;
+      var mt = pickMicType();
+      recChunks = [];
+      try { mediaRecorder = mt ? new MediaRecorder(stream, { mimeType: mt }) : new MediaRecorder(stream); }
+      catch (e) { stream.getTracks().forEach(function (t) { t.stop(); }); mediaStream = null; alert("No pude iniciar la grabación."); return; }
+      mediaRecorder.ondataavailable = function (e) { if (e.data && e.data.size) recChunks.push(e.data); };
+      mediaRecorder.onstop = function () {
+        mediaStream.getTracks().forEach(function (t) { t.stop(); }); mediaStream = null;
+        var mime = mediaRecorder.mimeType || mt || "audio/webm";
+        mediaRecorder = null;
+        if (recTimer) { clearInterval(recTimer); recTimer = null; }
+        setRecUI(false);
+        var chunks = recChunks; recChunks = [];
+        if (recCancelled) { recCancelled = false; return; }
+        var blob = new Blob(chunks, { type: mime });
+        if (blob.size > 0) askVoice(blob, mime);
+      };
+      mediaRecorder.start();
+      recStart = Date.now();
+      setRecUI(true);
+      recTime.textContent = "0:00";
+      recTimer = setInterval(function () {
+        var elapsed = Date.now() - recStart;
+        recTime.textContent = fmtRecTime(elapsed);
+        if (elapsed >= MAX_REC_MS) stopRec(false);
+      }, 250);
+    }).catch(function () { alert("No pude acceder al micrófono. Revisá los permisos del navegador para este sitio."); });
+  }
+  micBtn.onclick = function () { startRec(); }; // para detener y enviar se usa el botón "Enviar" (ya visible); para descartar, "✕ Cancelar"
+  recCancelBtn.onclick = function () { stopRec(true); };
+  function askVoice(blob, mimeType) {
+    if (busy) return;
+    setBusy(true); chips.innerHTML = "";
+    var bubble = add("user", "🎤 Nota de voz");
+    var bubbleText = bubble.firstChild; // nodo de texto; se corrige con la transcripción sin tocar el reproductor de audio
+    var ownAudio = document.createElement("audio"); ownAudio.controls = true; ownAudio.className = "reply-audio"; ownAudio.src = URL.createObjectURL(blob);
+    bubble.appendChild(document.createElement("br")); bubble.appendChild(ownAudio);
+    var userMsg = { role: "user", content: "(nota de voz)" };
+    history.push(userMsg); save();
+    var typing = add("bot", ""); typing.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+    var keepScroll = false;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var b64 = String(reader.result).split(",")[1];
+      var payload = {
+        messages: history.slice(-10).map(function (m) { return { role: m.role, content: m.content }; }),
+        audio: { mediaType: (mimeType || "audio/webm").split(";")[0], data: b64 },
+      };
+      post(payload)
+        .then(function (d) {
+          if (d.transcript) { bubbleText.nodeValue = d.transcript; userMsg.content = d.transcript; save(); }
+          typing.innerHTML = render(d.reply || "");
+          history.push({ role: "assistant", content: d.reply, products: d.products || [], videos: validVideos(d.videos) }); save();
+          if (d.audioReply) {
+            var au = document.createElement("audio"); au.controls = true; au.className = "reply-audio"; au.src = "data:audio/mpeg;base64," + d.audioReply;
+            typing.appendChild(document.createElement("br")); typing.appendChild(au);
+            au.play().catch(function () {});
+          }
+          if (validProducts(d.products).length) {
+            if (isSmall()) { addInlineProducts(d.products); keepScroll = true; scrollToEl(typing); }
+            else { setProducts(d.products, true); addProductsChip(d.products); }
+          }
+          if (validVideos(d.videos).length) { addVideos(d.videos); if (!validProducts(d.products).length) { keepScroll = true; scrollToEl(typing); } }
+          (d.widgets || []).forEach(function (w) {
+            var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
+            if (tab) openSide(tab);
+          });
+        })
+        .catch(function () { typing.innerHTML = 'Tuve un inconveniente para responderte. Escribinos por WhatsApp y con gusto te ayudamos: <a href="' + WA + '" target="_blank" rel="noopener">abrir chat</a>.'; history.pop(); save(); })
+        .then(function () { setBusy(false); if (!keepScroll) msgs.scrollTop = msgs.scrollHeight; if (!isSmall()) input.focus(); });
+    };
+    reader.readAsDataURL(blob);
+  }
   // "Celular": pantalla estrecha o teléfono en horizontal (poca altura). Debe coincidir con el @media del CSS.
   function isSmall() { return window.matchMedia("(max-width:760px),(max-height:520px)").matches; }
   // Llevar al inicio de un elemento dentro del chat (para ver la respuesta y sus productos juntos)
@@ -658,7 +829,7 @@
 
   /* ---------- Chat ---------- */
   function setBusy(b) {
-    busy = b; send.disabled = b; newBtn.disabled = b; histBtn.disabled = b; // no se cambia de conversación mientras se responde
+    busy = b; send.disabled = b; newBtn.disabled = b; histBtn.disabled = b; attachBtn.disabled = b; micBtn.disabled = b; // no se cambia de conversación mientras se responde
   }
   // Pinta la conversación actual desde cero (saludo + mensajes guardados + último listado de productos)
   function renderThread() {
@@ -742,13 +913,19 @@
   }
   function ask(text) {
     text = (text || "").trim();
-    if (!text || busy) return;
+    var img = pendingImage;
+    if ((!text && !img) || busy) return;
+    if (!text) text = "(imagen adjunta)";
     setBusy(true); chips.innerHTML = "";
-    add("user", text);
+    var bubble = add("user", text);
+    if (img) { var im = document.createElement("img"); im.className = "msg-img"; im.src = "data:" + img.mediaType + ";base64," + img.data; bubble.appendChild(im); }
+    clearPending();
     history.push({ role: "user", content: text }); save();
     var typing = add("bot", ""); typing.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
     var keepScroll = false;
-    post({ messages: history.slice(-10).map(function (m) { return { role: m.role, content: m.content }; }) })
+    var payload = { messages: history.slice(-10).map(function (m) { return { role: m.role, content: m.content }; }) };
+    if (img) payload.image = img;
+    post(payload)
       .then(function (d) {
         typing.innerHTML = render(d.reply);
         history.push({ role: "assistant", content: d.reply, products: d.products || [], videos: validVideos(d.videos) }); save();
@@ -793,7 +970,11 @@
   $(".sclose").onclick = closeSide;
   $(".clr").onclick = clearFilters;
   $(".go").onclick = runFilterSearch;
-  form.onsubmit = function (e) { e.preventDefault(); var v = input.value; input.value = ""; ask(v); };
+  form.onsubmit = function (e) {
+    e.preventDefault();
+    if (mediaRecorder) { stopRec(false); return; } // grabando: "Enviar" corta la grabación y la manda
+    var v = input.value; input.value = ""; ask(v);
+  };
   newBtn.onclick = newChat;
   histBtn.onclick = function (e) { e.stopPropagation(); toggleMenu(); };
   root.addEventListener("click", function (e) { if (!e.target.closest || !e.target.closest(".hwrap")) closeMenu(); });
