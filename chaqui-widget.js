@@ -106,6 +106,8 @@
     ".rec-hint{font-size:13px;color:#313e32;opacity:.6;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
     ".rec-cancel{background:rgba(192,57,57,.12);border:0;color:#c0392b;cursor:pointer;font-size:13px;font-weight:600;padding:7px 10px;border-radius:10px;flex:none;white-space:nowrap}.rec-cancel:hover{background:rgba(192,57,57,.22)}" +
     ".reply-audio{display:block;max-width:230px;height:32px;margin-top:6px}" +
+    ".m.sticker{background:none;padding:0;max-width:150px}" +
+    ".msg-sticker{display:block;width:140px;height:140px;object-fit:contain}" +
     ".chat.drag-over{outline:2px dashed var(--chq-green);outline-offset:-4px;background:rgba(49,62,50,.05)}" +
     ".chat.drag-over::after{content:'Soltá la imagen acá';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(247,249,237,.85);color:var(--chq-green);font-weight:600;font-size:15px;pointer-events:none;z-index:5}" +
     ".foot{font-size:11px;text-align:center;color:#6b756a;padding:0 10px 8px}.foot a{color:#6b756a}" +
@@ -236,7 +238,7 @@
     '<div class="rec-row" hidden><span class="rec-dot"></span><span class="rec-time">0:00</span><span class="rec-hint">Nota de voz</span><button class="rec-cancel" type="button" aria-label="Cancelar grabación" title="Cancelar">✕ Cancelar</button></div>' +
     '<button class="mic-btn" type="button" aria-label="Grabar nota de voz" title="Grabar nota de voz"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/></svg></button>' +
     '<button class="send" type="submit">Enviar</button></form>' +
-    '<div class="foot">Asistente con IA · puede equivocarse · <a href="' + WA + '" target="_blank" rel="noopener">WhatsApp</a></div></div>' +
+    '<div class="foot">Asistente con IA · puede equivocarse · <a href="' + WA + '" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://chaquiro.com/policies/privacy-policy" target="_blank" rel="noopener">Política de privacidad</a></div></div>' +
     "</div></section>";
 
   var $ = function (s) { return root.querySelector(s); };
@@ -317,6 +319,12 @@
     if (cls) e.className = cls;
     if (text !== undefined) e.textContent = text;
     return e;
+  }
+  // Sticker de marca (p. ej. al cerrar una venta): flota sin fondo de burbuja, como un sticker real.
+  function addSticker(dataUri) {
+    var d = document.createElement("div"); d.className = "m bot sticker";
+    var im = document.createElement("img"); im.className = "msg-sticker"; im.src = dataUri;
+    d.appendChild(im); msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
   }
   function post(payload) {
     return fetch(ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
@@ -458,6 +466,7 @@
             else { setProducts(d.products, true); addProductsChip(d.products); }
           }
           if (validVideos(d.videos).length) { addVideos(d.videos); if (!validProducts(d.products).length) { keepScroll = true; scrollToEl(typing); } }
+          if (d.stickerImage) addSticker(d.stickerImage);
           (d.widgets || []).forEach(function (w) {
             var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
             if (tab) openSide(tab);
@@ -934,6 +943,7 @@
           else { setProducts(d.products, true); addProductsChip(d.products); }                      // escritorio: panel lateral
         }
         if (validVideos(d.videos).length) { addVideos(d.videos); if (!validProducts(d.products).length) { keepScroll = true; scrollToEl(typing); } }
+        if (d.stickerImage) addSticker(d.stickerImage);
         // Filtros, mapa y contacto se abren solos (en celular suben como hoja inferior)
         (d.widgets || []).forEach(function (w) {
           var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
