@@ -146,6 +146,8 @@
     ".bb:disabled{opacity:.4;cursor:default}" +
     ".cstat{font-size:12.5px;line-height:1.45;color:#3f4a3f}.cstat:empty{display:none}.cstat.ok{color:#2b6a12;font-weight:600}.cstat.err{color:#b02a2a}" +
     ".cstat a{color:#003331;font-weight:700;text-decoration:underline}" +
+    ".cartlinks{display:flex;gap:8px;margin-top:6px}.cartbtn{padding:7px 10px;border-radius:8px;font-size:12.5px;font-weight:700;text-decoration:none;border:1px solid var(--chq-green);text-align:center;flex:1}" +
+    ".cartbtn.primary{background:var(--chq-green);color:#f7f9ed}.cartbtn.primary:hover{background:var(--chq-green-hover)}.cartbtn.secondary{background:#fff;color:var(--chq-green)}.cartbtn.secondary:hover{background:#f1f3e2}" +
     ".dd{font-size:12.5px;line-height:1.5;color:#3f4a3f;padding-top:6px;white-space:pre-wrap}" +
     ".dd ul{margin:6px 0 0;padding-left:18px}" +
     ".vb{display:inline-block;margin-top:8px;background:var(--chq-green);color:#f7f9ed;text-decoration:none;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}" +
@@ -321,6 +323,12 @@
     if (text !== undefined) e.textContent = text;
     return e;
   }
+  // Respuesta hablada con la voz de Gonzalo (nota de voz del cliente, o pedida por texto): se agrega y se reproduce sola.
+  function playAudioReply(container, base64) {
+    var au = document.createElement("audio"); au.controls = true; au.className = "reply-audio"; au.src = "data:audio/mpeg;base64," + base64;
+    container.appendChild(document.createElement("br")); container.appendChild(au);
+    au.play().catch(function () {});
+  }
   // Sticker de marca (p. ej. al cerrar una venta): flota sin fondo de burbuja, como un sticker real.
   function addSticker(dataUri) {
     var d = document.createElement("div"); d.className = "m bot sticker";
@@ -457,11 +465,7 @@
           if (d.transcript) { bubbleText.nodeValue = d.transcript; userMsg.content = d.transcript; save(); }
           typing.innerHTML = render(d.reply || "");
           history.push({ role: "assistant", content: d.reply, products: d.products || [], videos: validVideos(d.videos) }); save();
-          if (d.audioReply) {
-            var au = document.createElement("audio"); au.controls = true; au.className = "reply-audio"; au.src = "data:audio/mpeg;base64," + d.audioReply;
-            typing.appendChild(document.createElement("br")); typing.appendChild(au);
-            au.play().catch(function () {});
-          }
+          if (d.audioReply) playAudioReply(typing, d.audioReply);
           if (validProducts(d.products).length) {
             if (isSmall()) { addInlineProducts(d.products); keepScroll = true; scrollToEl(typing); }
             else { setProducts(d.products, true); addProductsChip(d.products); }
@@ -635,7 +639,7 @@
       })
       .catch(function () {});
   }
-  function actionLink(text, href) { var a = el("a", "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a; }
+  function actionLink(text, href, cls) { var a = el("a", cls || "", text); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a; }
   function buyBox(p, ppEl, bdEl) {
     var vars = p.vars, qty = 1, sel = null;
     var cur = vars.filter(function (v) { return v.a; })[0] || vars[0];
@@ -706,8 +710,11 @@
         .then(function () { return fetch("/cart.js", { headers: { accept: "application/json" } }).then(function (r) { return r.json(); }); })
         .then(function (cart) {
           stat.className = "cstat ok"; stat.textContent = "";
-          stat.appendChild(document.createTextNode("Agregado ✓ (" + cart.item_count + " en tu carrito) · "));
-          stat.appendChild(actionLink("Ver carrito", "/cart")); stat.appendChild(document.createTextNode(" · ")); stat.appendChild(actionLink("Pagar", "/checkout"));
+          stat.appendChild(document.createTextNode("Agregado ✓ (" + cart.item_count + " en tu carrito)"));
+          var links = el("div", "cartlinks");
+          links.appendChild(actionLink("Ver carrito", "/cart", "cartbtn secondary"));
+          links.appendChild(actionLink("Pagar", "/checkout", "cartbtn primary"));
+          stat.appendChild(links);
           notifyTheme(cart);
           track("add_to_cart", { product: p.titulo, variant_id: cur.id, quantity: qty });
         })
@@ -951,6 +958,7 @@
           else { setProducts(d.products, true); addProductsChip(d.products); }                      // escritorio: panel lateral
         }
         if (validVideos(d.videos).length) { addVideos(d.videos); if (!validProducts(d.products).length) { keepScroll = true; scrollToEl(typing); } }
+        if (d.audioReply) playAudioReply(typing, d.audioReply);
         if (d.stickerImage) addSticker(d.stickerImage);
         // Filtros, mapa y contacto se abren solos (en celular suben como hoja inferior)
         (d.widgets || []).forEach(function (w) {
