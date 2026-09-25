@@ -21,7 +21,9 @@
   var host = document.createElement("div");
   host.id = "chaqui-root";
   document.body.appendChild(host);
-  var root = host.attachShadow({ mode: "open" });
+  // "closed": evita que apps de terceros instaladas en la tienda (p. ej. badges de "Nuevo")
+  // recorran el DOM del sitio y se claven dentro del widget, rompiendo su estilo.
+  var root = host.attachShadow({ mode: "closed" });
 
   root.innerHTML =
     "<style>" +
