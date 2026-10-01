@@ -463,6 +463,7 @@
       var b64 = String(reader.result).split(",")[1];
       var payload = {
         messages: history.slice(-10).map(function (m) { return { role: m.role, content: m.content }; }),
+        conversationId: thread.id,
         audio: { mediaType: (mimeType || "audio/webm").split(";")[0], data: b64 },
       };
       post(payload)
@@ -955,7 +956,7 @@
     history.push({ role: "user", content: text }); save();
     var typing = add("bot", ""); typing.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
     var keepScroll = false;
-    var payload = { messages: history.slice(-10).map(function (m) { return { role: m.role, content: m.content }; }) };
+    var payload = { messages: history.slice(-10).map(function (m) { return { role: m.role, content: m.content }; }), conversationId: thread.id };
     if (img) payload.image = img;
     post(payload)
       .then(function (d) {
