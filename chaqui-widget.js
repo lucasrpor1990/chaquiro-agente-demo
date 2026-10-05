@@ -217,6 +217,27 @@
     // El atributo "hidden" pierde contra cualquier regla con "display" propio (attach-btn/mic-btn/rec-row/preview lo tienen);
     // sin este selector [hidden] (más específico) esos elementos quedaban siempre visibles aunque .hidden = true.
     ".attach-btn[hidden],.mic-btn[hidden],.rec-row[hidden],.preview[hidden]{display:none}" +
+    /* Visor 3D/AR: modal centrado sobre todo lo demás (incluido el panel), con su propio scrim */
+    ".m3d-scrim{display:none;position:fixed;inset:0;background:rgba(20,24,18,.55);z-index:2147483600}" +
+    ".m3d-modal{display:none;position:fixed;inset:0;margin:auto;width:min(560px,calc(100vw - 32px));height:min(520px,calc(100vh - 32px));background:#fff;border-radius:16px;box-shadow:0 30px 80px -20px rgba(13,17,23,.45);z-index:2147483601;flex-direction:column;overflow:hidden}" +
+    ":host(.chq-3d-open) .m3d-scrim,:host(.chq-3d-open) .m3d-modal{display:flex}" +
+    ".m3d-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:var(--chq-green);color:#f7f9ed}" +
+    ".m3d-title{font-weight:700;font-size:14.5px;line-height:1.3}" +
+    ".m3d-close{flex:none;background:none;border:0;color:#f7f9ed;opacity:.85;font-size:16px;cursor:pointer;padding:6px 8px;border-radius:8px}.m3d-close:hover{opacity:1;background:rgba(247,249,237,.15)}" +
+    ".m3d-body{flex:1;min-height:0;position:relative;background:#fff}" +
+    ".m3d-body model-viewer{width:100%;height:100%;--poster-color:transparent}" +
+    ".m3d-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#6b756a;font-size:13.5px}" +
+    ".m3d-loading[hidden]{display:none}" +
+    ".m3d-ar-btn{position:absolute;right:14px;bottom:14px;background:var(--chq-green);color:#f7f9ed;border:0;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(0,0,0,.2)}" +
+    ".m3d-ar-btn:hover{background:var(--chq-green-hover)}" +
+    ".m3d-err{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#6b756a;font-size:13.5px}" +
+    ".m3d-qr-toggle{flex:none;background:#fff;color:var(--chq-green);border:1px solid rgba(49,62,50,.2);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;margin:10px 16px}" +
+    ".m3d-qr-toggle:hover{background:#f1f3e2}" +
+    ".m3d-qr-panel{flex:none;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:4px 20px 18px;font-size:12.5px;color:#44503f;line-height:1.45}" +
+    ".m3d-qr-panel[hidden]{display:none}" +
+    ".m3d-qr-img{width:150px;height:150px;border-radius:10px;border:1px solid rgba(49,62,50,.14)}" +
+    ".m3d-qr-panel p{margin:0;max-width:280px}" +
+    "@media(max-width:600px){.m3d-modal{width:100vw;height:100vh;height:100dvh;max-height:none;border-radius:0;padding-bottom:env(safe-area-inset-bottom)}.m3d-head{padding-top:calc(14px + env(safe-area-inset-top))}}" +
     "</style>" +
     '<div class="greet" role="button" tabindex="0"><button class="greet-x" aria-label="Cerrar">✕</button>' +
     '<div class="greet-top"><img src="' + AVATAR + '" alt=""><div class="greet-title">¡Pregúntale a Chaqui!</div></div></div>' +
@@ -247,7 +268,14 @@
     '<button class="mic-btn" type="button" aria-label="Grabar nota de voz" title="Grabar nota de voz"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/></svg></button>' +
     '<button class="send" type="submit">Enviar</button></form>' +
     '<div class="foot">Asistente con IA · puede equivocarse · <a href="' + WA + '" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://chaquiro.com/policies/privacy-policy" target="_blank" rel="noopener">Política de privacidad</a></div></div>' +
-    "</div></section>";
+    "</div></section>" +
+    '<div class="m3d-scrim"></div>' +
+    '<div class="m3d-modal" role="dialog" aria-label="Modelo 3D del producto">' +
+    '<div class="m3d-head"><span class="m3d-title"></span><button class="m3d-close" type="button" aria-label="Cerrar">✕</button></div>' +
+    '<div class="m3d-body"><div class="m3d-loading"><span class="typing"><i></i><i></i><i></i></span><span>Cargando modelo 3D…</span></div></div>' +
+    '<button class="m3d-qr-toggle" type="button">📱 Ver en AR desde tu celular</button>' +
+    '<div class="m3d-qr-panel" hidden><img class="m3d-qr-img" alt="Código QR para ver en AR desde el celular"><p>Escaneá este código con la cámara de tu celular para ver <b class="m3d-qr-name"></b> en realidad aumentada.</p></div>' +
+    "</div>";
 
   var $ = function (s) { return root.querySelector(s); };
   var btn = $(".btn"), greet = $(".greet"), panel = $(".panel"), side = $(".side"), msgs = $(".msgs"), chips = $(".chips"), form = $(".form"), input = $(".in"), send = $(".send");
@@ -628,6 +656,75 @@
   function track(name, data) {
     try { if (window.Shopify && window.Shopify.analytics && window.Shopify.analytics.publish) window.Shopify.analytics.publish("chaqui:" + name, data || {}); } catch (e) {}
   }
+
+  /* ---------- Visor 3D/AR (model-viewer de Google, cargado solo la primera vez que se usa) ---------- */
+  var m3dScrim = $(".m3d-scrim"), m3dModal = $(".m3d-modal"), m3dTitle = $(".m3d-title"), m3dBody = $(".m3d-body"), m3dClose = $(".m3d-close");
+  var m3dQrToggle = $(".m3d-qr-toggle"), m3dQrPanel = $(".m3d-qr-panel"), m3dQrImg = $(".m3d-qr-img"), m3dQrName = $(".m3d-qr-name");
+  var modelViewerPromise = null;
+  function ensureModelViewerLoaded() {
+    if (!modelViewerPromise) {
+      modelViewerPromise = new Promise(function (resolve, reject) {
+        if (window.customElements && customElements.get("model-viewer")) { resolve(); return; }
+        var s = document.createElement("script");
+        s.type = "module";
+        s.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js";
+        s.onload = function () { resolve(); };
+        s.onerror = function () { reject(new Error("load_failed")); };
+        document.head.appendChild(s);
+      });
+    }
+    return modelViewerPromise;
+  }
+  function close3DViewer() {
+    host.classList.remove("chq-3d-open");
+    m3dBody.innerHTML = ""; // se detiene cualquier render/AR en curso
+    m3dQrPanel.hidden = true;
+    m3dQrImg.src = "";
+  }
+  function open3DViewer(p) {
+    m3dTitle.textContent = p.titulo + " — Modelo 3D/AR";
+    m3dBody.innerHTML = '<div class="m3d-loading"><span class="typing"><i></i><i></i><i></i></span><span>Cargando modelo 3D…</span></div>';
+    m3dQrPanel.hidden = true;
+    // Página con el modelo lista para el celular (así el botón de AR tiene cámara disponible; en la compu no la hay).
+    // Por origen, no por ENDPOINT + "ar" a secas: en local ENDPOINT termina en "/chat", no en "/".
+    var arUrl = new URL("ar?glb=" + encodeURIComponent(p.modelo3d.glb) + (p.modelo3d.usdz ? "&usdz=" + encodeURIComponent(p.modelo3d.usdz) : "") + "&title=" + encodeURIComponent(p.titulo), ENDPOINT).href;
+    m3dQrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(arUrl);
+    m3dQrName.textContent = p.titulo;
+    m3dQrToggle.onclick = function () { m3dQrPanel.hidden = !m3dQrPanel.hidden; if (!m3dQrPanel.hidden) track("ver_qr_ar_producto", { product: p.titulo }); };
+    host.classList.add("chq-3d-open");
+    ensureModelViewerLoaded()
+      .then(function () {
+        if (!host.classList.contains("chq-3d-open")) return; // se cerró mientras cargaba la librería
+        var mv = document.createElement("model-viewer");
+        mv.setAttribute("src", p.modelo3d.glb);
+        if (p.modelo3d.usdz) mv.setAttribute("ios-src", p.modelo3d.usdz);
+        mv.setAttribute("camera-controls", "");
+        mv.setAttribute("auto-rotate", "");
+        mv.setAttribute("ar", "");
+        mv.setAttribute("ar-modes", "webxr scene-viewer quick-look");
+        mv.setAttribute("ar-scale", "fixed");
+        mv.setAttribute("shadow-intensity", "1");
+        mv.setAttribute("alt", p.titulo);
+        var arBtn = el("button", "m3d-ar-btn", "");
+        arBtn.type = "button";
+        arBtn.setAttribute("slot", "ar-button");
+        arBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>Ver en AR';
+        arBtn.onclick = function () { track("ver_ar_producto", { product: p.titulo }); };
+        mv.appendChild(arBtn);
+        mv.addEventListener("error", function () {
+          m3dBody.innerHTML = '<div class="m3d-err">No pude cargar el modelo 3D de este producto. Probá de nuevo en un momento.</div>';
+        });
+        m3dBody.innerHTML = "";
+        m3dBody.appendChild(mv);
+        track("ver_3d_producto", { product: p.titulo });
+      })
+      .catch(function () {
+        m3dBody.innerHTML = '<div class="m3d-err">No pude cargar el visor 3D. Probá de nuevo en un momento.</div>';
+      });
+  }
+  m3dClose.onclick = close3DViewer;
+  m3dScrim.onclick = close3DViewer;
+
   // Avisa al tema de que el carrito cambió (depende de cada tema: se prueba varias señales comunes)
   function notifyTheme(cart) {
     ["cart:refresh", "cart:updated", "cart:change"].forEach(function (n) { try { document.dispatchEvent(new CustomEvent(n, { detail: { cart: cart }, bubbles: true })); } catch (e) {} });
@@ -675,11 +772,18 @@
     var now = el("button", "bb now", "Comprar ahora"); now.type = "button";
     row2.appendChild(add); row2.appendChild(now);
     box.appendChild(row2);
-    if (p.video && p.video.id) {
+    if ((p.video && p.video.id) || (p.modelo3d && p.modelo3d.glb)) {
       var row3 = el("div", "brow");
-      var vid = el("a", "bb vid", "▶ Ver video"); vid.href = "https://www.youtube.com/watch?v=" + p.video.id; vid.target = "_blank"; vid.rel = "noopener";
-      vid.onclick = function () { track("ver_video_producto", { product: p.titulo, video: p.video.id }); };
-      row3.appendChild(vid);
+      if (p.video && p.video.id) {
+        var vid = el("a", "bb vid", "▶ Ver video"); vid.href = "https://www.youtube.com/watch?v=" + p.video.id; vid.target = "_blank"; vid.rel = "noopener";
+        vid.onclick = function () { track("ver_video_producto", { product: p.titulo, video: p.video.id }); };
+        row3.appendChild(vid);
+      }
+      if (p.modelo3d && p.modelo3d.glb) {
+        var ar3d = el("button", "bb vid", "🧊 Ver en 3D/AR"); ar3d.type = "button";
+        ar3d.onclick = function () { open3DViewer(p); };
+        row3.appendChild(ar3d);
+      }
       box.appendChild(row3);
     }
     var stat = el("div", "cstat");
