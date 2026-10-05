@@ -701,7 +701,7 @@
         mv.setAttribute("camera-controls", "");
         mv.setAttribute("auto-rotate", "");
         mv.setAttribute("ar", "");
-        mv.setAttribute("ar-modes", "webxr scene-viewer quick-look");
+        mv.setAttribute("ar-modes", "scene-viewer webxr quick-look");
         mv.setAttribute("ar-scale", "fixed");
         mv.setAttribute("shadow-intensity", "1");
         mv.setAttribute("alt", p.titulo);
