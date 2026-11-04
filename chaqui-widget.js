@@ -507,10 +507,7 @@
           }
           if (validVideos(d.videos).length) { addVideos(d.videos); if (!validProducts(d.products).length) { keepScroll = true; scrollToEl(typing); } }
           if (d.stickerImage) addSticker(d.stickerImage);
-          (d.widgets || []).forEach(function (w) {
-            var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
-            if (tab) openSide(tab);
-          });
+          openWidgets(d.widgets, d.products);
         })
         .catch(function () { typing.innerHTML = 'Tuve un inconveniente para responderte. Escribinos por WhatsApp y con gusto te ayudamos: <a href="' + WA + '" target="_blank" rel="noopener">abrir chat</a>.'; history.pop(); save(); })
         .then(function () { setBusy(false); if (!keepScroll) msgs.scrollTop = msgs.scrollHeight; if (!isSmall()) input.focus(); });
@@ -585,6 +582,15 @@
     tabP.classList.toggle("on", name === "p");
     tabM.classList.toggle("on", name === "m");
     tabC.classList.toggle("on", name === "c");
+  }
+  // Abre los paneles que pidió el agente. Si la respuesta trae productos del punto de venta (comida), el panel de contacto
+  // no se abre solo: taparía la foto; esas tarjetas ya traen su botón "Pedir por WhatsApp".
+  function openWidgets(widgets, products) {
+    var food = (products || []).some(function (p) { return p && p.referencia === true; });
+    (widgets || []).forEach(function (w) {
+      var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
+      if (tab && !(food && tab === "c")) openSide(tab);
+    });
   }
   function openSide(name) {
     panel.classList.add("side-open");
@@ -856,6 +862,11 @@
     top.appendChild(info);
     card.appendChild(top);
     card.appendChild(el("div", "pnote", "Precio de referencia, sujeto a verificación. Pedilo por WhatsApp (domicilio en el Área Metropolitana) o pasá por el punto de venta en Envigado."));
+    var wa = el("a", "vb", "Pedir por WhatsApp");
+    wa.href = WA + "?text=" + encodeURIComponent("Hola, quiero pedir " + (p.titulo || "un producto") + (p.presentacion ? " (" + p.presentacion + ")" : "") + ". Mi domicilio es en: ");
+    wa.target = "_blank"; wa.rel = "noopener";
+    wa.onclick = function () { track("pedir_whatsapp_alimento", { product: p.titulo }); };
+    card.appendChild(wa);
     return card;
   }
   function productCard(p) {
@@ -1095,11 +1106,7 @@
         if (validVideos(d.videos).length) { addVideos(d.videos); if (!validProducts(d.products).length) { keepScroll = true; scrollToEl(typing); } }
         if (d.audioReply) playAudioReply(typing, d.audioReply);
         if (d.stickerImage) addSticker(d.stickerImage);
-        // Filtros, mapa y contacto se abren solos (en celular suben como hoja inferior)
-        (d.widgets || []).forEach(function (w) {
-          var tab = w === "filtros" ? "f" : w === "mapa" ? "m" : w === "contacto" ? "c" : null;
-          if (tab) openSide(tab);
-        });
+        openWidgets(d.widgets, d.products); // filtros, mapa y contacto se abren solos (en celular suben como hoja inferior)
       })
       .catch(function () { typing.innerHTML = 'Tuve un inconveniente para responderte. Escribinos por WhatsApp y con gusto te ayudamos: <a href="' + WA + '" target="_blank" rel="noopener">abrir chat</a>.'; history.pop(); save(); })
       .then(function () { setBusy(false); if (!keepScroll) msgs.scrollTop = msgs.scrollHeight; if (!isSmall()) input.focus(); });
