@@ -135,6 +135,7 @@
     ".pi{min-width:0;display:flex;flex-direction:column;gap:5px}" +
     ".pn{font-weight:600;font-size:14px;line-height:1.3;color:#313e32;text-decoration:none}.pn:hover{text-decoration:underline}" +
     ".pp{font-weight:700;font-size:16px;color:#003331}" +
+    ".pn.pnt{cursor:default}.pn.pnt:hover{text-decoration:none}.pnote{font-size:11.5px;line-height:1.4;color:#6b756a;margin-top:8px}" +
     ".bd{align-self:flex-start;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px}.bd.ok{background:#e4f3d8;color:#2b6a12}.bd.no{background:#fde4e4;color:#b02a2a}" +
     "details{margin-top:8px;border-top:1px solid rgba(49,62,50,.1);padding-top:6px}" +
     "summary{cursor:pointer;font-size:12.5px;font-weight:600;color:#313e32;list-style:none;display:flex;align-items:center;gap:5px}summary::-webkit-details-marker{display:none}" +
@@ -314,7 +315,7 @@
   }
   function slimProducts(list) {
     return (list || []).map(function (p) {
-      return { titulo: p.titulo, url: p.url, precio: p.precio, disponible: p.disponible, imagen: p.imagen, detalle: (p.detalle || "").slice(0, 350), variantes: p.variantes, vars: p.vars, stock: p.stock };
+      return { titulo: p.titulo, url: p.url, precio: p.precio, disponible: p.disponible, imagen: p.imagen, detalle: (p.detalle || "").slice(0, 350), variantes: p.variantes, vars: p.vars, stock: p.stock, presentacion: p.presentacion, referencia: p.referencia };
     });
   }
   // Guarda la conversación actual (solo si el usuario ya escribió algo)
@@ -842,7 +843,23 @@
     return box;
   }
 
+  // Producto que solo se vende en el punto de venta (alimentos): foto + precio de referencia, sin compra ni enlace.
+  function infoCard(p) {
+    var card = el("div", "pc");
+    var top = el("div", "pt");
+    var im = el("img"); im.src = p.imagen; im.alt = p.titulo || ""; im.loading = "lazy";
+    top.appendChild(im);
+    var info = el("div", "pi");
+    info.appendChild(el("div", "pn pnt", p.titulo || ""));
+    info.appendChild(el("div", "pp", p.precio || ""));
+    info.appendChild(el("span", "bd ok", "Punto de venta" + (p.presentacion ? " · " + p.presentacion : "")));
+    top.appendChild(info);
+    card.appendChild(top);
+    card.appendChild(el("div", "pnote", "Precio de referencia, sujeto a verificación. Pedilo por WhatsApp (domicilio en el Área Metropolitana) o pasá por el punto de venta en Envigado."));
+    return card;
+  }
   function productCard(p) {
+    if (p.referencia) return infoCard(p);
     var card = el("div", "pc");
     var top = el("div", "pt");
     if (p.imagen && /^https:\/\//.test(p.imagen)) {
@@ -879,8 +896,13 @@
     }
     return card;
   }
+  // Tarjetas válidas: productos de la tienda, o del punto de venta cuya foto viene del propio backend del widget.
+  var CATALOG_IMG = (function () { try { return new URL(ENDPOINT, location.href).origin + "/catalogo-img/"; } catch (e) { return "\u0000"; } })();
   function validProducts(list) {
-    return (list || []).filter(function (p) { return /^https:\/\/(www\.)?chaquiro\.com\/products\//.test(p.url || ""); });
+    return (list || []).filter(function (p) {
+      if (p.referencia === true) return typeof p.imagen === "string" && p.imagen.indexOf(CATALOG_IMG) === 0;
+      return /^https:\/\/(www\.)?chaquiro\.com\/products\//.test(p.url || "");
+    });
   }
   // Pinta la lista en el panel lateral (pestaña Productos). open: abrir el panel automáticamente.
   function setProducts(list, open) {
